@@ -25,3 +25,4 @@ htmlcov/
 *,cover
 
 tmp/
+!migrations/env.py
