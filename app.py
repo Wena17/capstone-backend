@@ -7,6 +7,7 @@ import dotenv
 dotenv.load_dotenv()
 
 app = Flask(__name__)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
     dbuser=os.environ['DBUSER'],
     dbpass=os.environ['DBPASS'],
