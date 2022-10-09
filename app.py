@@ -27,6 +27,17 @@ def hello_world():
 def health_check():
     return "I'm fine"
 
+@app.route('/messages')
+def show_messages():
+    msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
+    print(msgs)
+    res = []
+    for m in msgs:
+        res.append({'id': m.id, "dev_id": m.dev_id, "ts": m.ts})
+    return jsonify(res)
+
+# IoT API
+
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
 def uplinkMessage():
     msg = request.json
@@ -61,6 +72,8 @@ def locationSolved():
     print(f"---> Received location solved: {msg}")
     resp = jsonify(success=True) # { "success": true }
     return resp
+
+# Data model
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
