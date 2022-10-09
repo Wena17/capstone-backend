@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 import dotenv
+import datetime
 
 dotenv.load_dotenv()
 
@@ -57,3 +58,9 @@ def locationSolved():
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
+
+class DeviceMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dev_id = db.Column(db.String(32), index=True, nullable=False)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
+    
