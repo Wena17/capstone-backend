@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
@@ -21,6 +21,34 @@ migrate = Migrate(app, db)
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
+
+@app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
+def uplinkMessage():
+    msg = request.json
+    print(f"---> Received uplink message: {msg}")
+    resp = jsonify(success=True) # { "success": true }
+    return resp
+
+@app.route("/api/v1/iot/normalizedUplink", methods=['POST'])
+def normalizedUplink():
+    msg = request.json
+    print(f"---> Received normalized uplink: {msg}")
+    resp = jsonify(success=True) # { "success": true }
+    return resp
+
+@app.route("/api/v1/iot/joinAccept", methods=['POST'])
+def joinAccept():
+    msg = request.json
+    print(f"---> Received join accept: {msg}")
+    resp = jsonify(success=True) # { "success": true }
+    return resp
+
+@app.route("/api/v1/iot/locationSolved", methods=['POST'])
+def locationSolved():
+    msg = request.json
+    print(f"---> Received location solved: {msg}")
+    resp = jsonify(success=True) # { "success": true }
+    return resp
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
