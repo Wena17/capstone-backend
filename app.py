@@ -44,9 +44,16 @@ def normalizedUplink():
 @app.route("/api/v1/iot/joinAccept", methods=['POST'])
 def joinAccept():
     msg = request.json
-    print(f"---> Received join accept: {msg}")
-    resp = jsonify(success=True) # { "success": true }
-    return resp
+    if msg["end_device_ids"]["application_ids"]["application_id"] is not "wena-util-moni":
+        return ("Wrong application ID", 403)
+    else:
+        print(f"---> Received join accept: {msg}")
+        dev_msg = DeviceMessage()
+        dev_msg.dev_id = msg["end_device_ids"]["device_id"]
+        db.session.add(dev_msg)
+        db.session.commit()
+        resp = jsonify(success=True) # { "success": true }
+        return resp
 
 @app.route("/api/v1/iot/locationSolved", methods=['POST'])
 def locationSolved():
@@ -63,4 +70,3 @@ class DeviceMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dev_id = db.Column(db.String(32), index=True, nullable=False)
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
-    
