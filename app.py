@@ -22,6 +22,10 @@ migrate = Migrate(app, db)
 def hello_world():
     return "<p>Hello, World!</p>"
 
+@app.route("/health")
+def health_check():
+    return "I'm fine"
+
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
 def uplinkMessage():
     msg = request.json
