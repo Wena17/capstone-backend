@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
@@ -30,11 +30,7 @@ def health_check():
 @app.route('/messages')
 def show_messages():
     msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
-    print(msgs)
-    res = []
-    for m in msgs:
-        res.append({'id': m.id, "dev_id": m.dev_id, "ts": m.ts})
-    return jsonify(res)
+    return render_template('messages.html', messages=msgs)
 
 # IoT API
 
