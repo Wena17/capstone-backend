@@ -16,7 +16,7 @@
       {% for dev in devices %}
       <tr>
         <td>{{dev.id}}</td>
-        <td>{{dev.dev_id}}</td>
+        <td><a href=/devices/{{dev.dev_id}}>{{dev.dev_id}}</a></td>
         <td>{{ dev.lat }}</td>
         <td>{{ dev.long }}</td>
         <td>{{dev.ts}}</td>

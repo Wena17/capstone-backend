@@ -39,6 +39,11 @@ def show_devices():
     data = Device.query.order_by(Device.ts).all()
     return render_template('devices.html', devices=data)
 
+@app.route('/devices/<string:dev_id>')
+def show_device(dev_id):
+    dev = Device.query.filter_by(dev_id=dev_id).first()
+    return render_template('device.html', dev=dev)
+
 @app.route('/registration/<string:dev_id>')
 def show_registration(dev_id):
     return render_template('registration.html', dev_id=dev_id)
