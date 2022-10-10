@@ -6,15 +6,28 @@
     <input id="lat" type="text" value="Wait..." readonly/>
     <input id="long" type="text" value="..." readonly/>
     <div id="err"/>
+    <div id="reg-result"/>
 
     <script>
+      const dev_id = '{{ dev_id }}'
       navigator.geolocation.getCurrentPosition(
         function (pos) {
           document.getElementById("lat").value = pos.coords.latitude
           document.getElementById("long").value = pos.coords.longitude
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.onreadystatechange = function() {
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+              document.getElementById("reg-result").innerHTML = xmlHttp.responseText;
+            }
+          xmlHttp.open("POST", "/api/v1/register-device", true) // true for asynchronous
+          xmlHttp.setRequestHeader("Content-Type", "application/json;charset=UTF-8")
+          xmlHttp.send(JSON.stringify({ "dev_id": `${dev_id}`, "lat": pos.coords.latitude, "long": pos.coords.longitude }))
         },
         err => document.getElementById("err").innerHTML = `ERROR(${err.code}): ${err.message}`,
-        { enableHighAccuracy: true })
+        { enableHighAccuracy: true }
+      )
+
+
     </script>
 
 {% endblock %}

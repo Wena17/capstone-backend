@@ -40,6 +40,15 @@ def show_registration(dev_id):
 
 # IoT API
 
+@app.route("/api/v1/register-device", methods=["POST"])
+def register_device():
+    data = request.json
+    dev = Device(dev_id=data["dev_id"], lat=data["lat"], long=data["long"])
+    db.session.add(dev)
+    db.session.commit()
+    resp = jsonify(success=True) # { "success": true }
+    return resp
+
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
 def uplinkMessage():
     msg = request.json
@@ -81,6 +90,13 @@ def locationSolved():
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
+
+class Device(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dev_id = db.Column(db.String(32), index=True, nullable=False, unique=True)
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
 
 class DeviceMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
