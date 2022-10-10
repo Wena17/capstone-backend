@@ -13,6 +13,7 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>'
       })
       map.addLayer(layer)
+      L.marker([{{dev.lat}}, {{dev.long}}]).addTo(map).bindPopup("<strong>{{dev.dev_id}}</strong>").openPopup();
     </script>
 
 {% endblock %}
