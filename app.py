@@ -4,6 +4,8 @@ from flask_migrate import Migrate
 import os
 import dotenv
 import datetime
+from flask_login import LoginManager
+from .forms import SignupForm, LoginForm
 
 dotenv.load_dotenv()
 
@@ -19,8 +21,52 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(id)
+
+# Device message types
 JOIN_ACCEPT = 1
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    # Login route logic goes here
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    """
+    User sign-up page.
+
+    GET requests serve sign-up page.
+    POST requests validate form & user creation.
+    """
+    form = SignupForm()
+    if form.validate_on_submit():
+        existing_user = User.query.filter_by(email=form.email.data).first()
+        if existing_user is None:
+            user = User(
+                name=form.name.data,
+                email=form.email.data,
+                website=form.website.data
+            )
+            user.set_password(form.password.data)
+            db.session.add(user)
+            db.session.commit()  # Create new user
+            login_user(user)  # Log in as newly created user
+            return redirect("/")
+        flash('A user already exists with that email address.')
+    return render_template(
+        'signup.html',
+        title='Create an Account.',
+        form=form,
+        template='signup-page',
+        body="Sign up for a user account."
+    )
+    
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
@@ -101,6 +147,43 @@ def locationSolved():
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128))
+    email = db.Column(
+        db.String(40),
+        unique=True,
+        nullable=False
+    )
+    password = db.Column(
+        db.String(200),
+        primary_key=False,
+        unique=False,
+        nullable=False
+	)
+    created_on = db.Column(
+        db.DateTime,
+        index=False,
+        unique=False,
+        nullable=True
+    )
+    last_login = db.Column(
+        db.DateTime,
+        index=False,
+        unique=False,
+        nullable=True
+    )
+
+    def set_password(self, password):
+        """Create hashed password."""
+        self.password = generate_password_hash(
+            password,
+            method='sha256'
+        )
+
+    def check_password(self, password):
+        """Check hashed password."""
+        return check_password_hash(self.password, password)
+
+    def __repr__(self):
+        return '<User {}>'.format(self.username)
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
