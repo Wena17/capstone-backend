@@ -19,6 +19,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
+JOIN_ACCEPT = 1
+
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
@@ -57,6 +59,7 @@ def joinAccept():
     else:
         dev_msg = DeviceMessage()
         dev_msg.dev_id = msg["end_device_ids"]["device_id"]
+        dev_msg.msg_type = JOIN_ACCEPT
         db.session.add(dev_msg)
         db.session.commit()
     resp = jsonify(success=True) # { "success": true }
@@ -80,3 +83,10 @@ class DeviceMessage(db.Model):
     dev_id = db.Column(db.String(32), index=True, nullable=False)
     msg_type = db.Column(db.Integer)
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
+
+    def msg_type_name(self):
+        if self.msg_type is None:
+            return "No message type"
+        else:
+            names = ['Unknown Message', 'Join Accept']
+            return names[self.msg_type]
