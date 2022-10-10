@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Registration</h1>
+    <input id="lat" type="text" value="Wait..." readonly/>
+    <input id="long" type="text" value="..." readonly/>
+    <div id="err"/>
+
+    <script>
+      Geolocation.getCurrentPosition(
+        pos => document.getElementById("lat").value = pos.coords.latitude + ", " + pos.coords.longitude,
+        err => document.getElementById("err").innerHTML = `ERROR(${err.code}): ${err.message}`,
+        { enableHighAccuracy: true })
+    </script>
+
+{% endblock %}

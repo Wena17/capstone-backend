@@ -34,6 +34,10 @@ def show_messages():
     msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
     return render_template('messages.html', messages=msgs)
 
+@app.route('/registration')
+def show_registration():
+    return render_template('registration.html')
+
 # IoT API
 
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
