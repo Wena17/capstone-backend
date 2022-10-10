@@ -2,13 +2,17 @@
 
 {% block content %}
     <h1>Registration</h1>
+    <p>Device ID: {{ dev_id }}</p>
     <input id="lat" type="text" value="Wait..." readonly/>
     <input id="long" type="text" value="..." readonly/>
     <div id="err"/>
 
     <script>
       navigator.geolocation.getCurrentPosition(
-        pos => document.getElementById("lat").value = pos.coords.latitude + ", " + pos.coords.longitude,
+        function (pos) {
+          document.getElementById("lat").value = pos.coords.latitude
+          document.getElementById("long").value = pos.coords.longitude
+        },
         err => document.getElementById("err").innerHTML = `ERROR(${err.code}): ${err.message}`,
         { enableHighAccuracy: true })
     </script>
