@@ -76,6 +76,7 @@ def normalizedUplink():
 @app.route("/api/v1/iot/joinAccept", methods=['POST'])
 def joinAccept():
     msg = request.json
+    # TODO: Only accept join requests from previouslz registered devices
     print(f"---> Received join accept: {msg}")
     if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
