@@ -7,7 +7,7 @@
     <div id="err"/>
 
     <script>
-      Geolocation.getCurrentPosition(
+      navigator.geolocation.getCurrentPosition(
         pos => document.getElementById("lat").value = pos.coords.latitude + ", " + pos.coords.longitude,
         err => document.getElementById("err").innerHTML = `ERROR(${err.code}): ${err.message}`,
         { enableHighAccuracy: true })
