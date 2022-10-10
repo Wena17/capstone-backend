@@ -78,4 +78,5 @@ class User(db.Model):
 class DeviceMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dev_id = db.Column(db.String(32), index=True, nullable=False)
+    msg_type = db.column(db.Integer, nullable=False, default=0)
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
