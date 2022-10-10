@@ -34,6 +34,11 @@ def show_messages():
     msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
     return render_template('messages.html', messages=msgs)
 
+@app.route('/devices')
+def show_devices():
+    data = Device.query.order_by(Device.ts).all()
+    return render_template('devices.html', devices=data)
+
 @app.route('/registration/<string:dev_id>')
 def show_registration(dev_id):
     return render_template('registration.html', dev_id=dev_id)

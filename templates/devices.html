@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Devices</h1>
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Device ID</th>
+        <th scope="col">Latitude</th>
+        <th scope="col">Longitude</th>
+        <th scope="col">Timestamp</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for dev in devices %}
+      <tr>
+        <td>{{dev.id}}</td>
+        <td>{{dev.dev_id}}</td>
+        <td>{{ dev.lat }}</td>
+        <td>{{ dev.long }}</td>
+        <td>{{dev.ts}}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+{% endblock %}
