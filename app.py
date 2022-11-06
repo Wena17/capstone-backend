@@ -96,11 +96,33 @@ def locationSolved():
     resp = jsonify(success=True) # { "success": true }
     return resp
 
+@app.route("/api/v1/signup", methods=['POST'])
+def signup():
+    msg = request.json
+    user = User()
+    user.accountId = msg["consumerAccountID"]
+    user.firstname = msg["firstName"]
+    user.lastname = msg["lastName"]
+    user.phoneNo = msg["phoneNo"]
+    user.email = msg["email"]
+    user.username = msg["username"]
+    user.password = msg["password"]
+    db.session.add(user)
+    db.session.commit()
+    resp = jsonify(success=True) # { "success": true }
+    return resp
+
+
 # Data model
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(128))
+    accountId = db.Column(db.Integer, nullable=False)
+    firstname = db.Column(db.String(100), nullable=False)
+    lastname = db.Column(db.String(100), nullable=False)
+    phoneNo = db.Column(db.String(15), nullable=False)
+    email = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
