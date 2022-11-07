@@ -21,9 +21,9 @@ migrate = Migrate(app, db)
 
 JOIN_ACCEPT = 1
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+@app.route("/home")
+def show_homes():
+    return render_template('home.html')
 
 @app.route("/health")
 def health_check():
