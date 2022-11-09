@@ -50,7 +50,7 @@ def show_registration(dev_id):
 
 @app.route('/user')
 def show_users():
-    msgs = User.query.order_by(User.id).all()
+    msgs = "User".query.all()
     return render_template('user.html', users=msgs)
 
 # IoT API
