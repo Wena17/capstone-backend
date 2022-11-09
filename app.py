@@ -48,6 +48,11 @@ def show_device(dev_id):
 def show_registration(dev_id):
     return render_template('registration.html', dev_id=dev_id)
 
+@app.route('/user')
+def show_users():
+    msgs = User.query.order_by(User.id).all()
+    return render_template('user.html', users=msgs)
+
 # IoT API
 
 @app.route("/api/v1/register-device", methods=["POST"])
