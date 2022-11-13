@@ -5,6 +5,7 @@ import os
 import dotenv
 import datetime
 from flask_bcrypt import Bcrypt
+import jwt
 
 dotenv.load_dotenv()
 
@@ -16,11 +17,13 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
     dbhost=os.environ['DBHOST'],
     dbname=os.environ['DBNAME']
 )
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db, compare_type=True)
 bcrypt = Bcrypt(app)
 
+# TTN message types
 JOIN_ACCEPT = 1
 
 @app.route("/")
@@ -52,7 +55,7 @@ def show_registration(dev_id):
 
 @app.route('/user')
 def show_users():
-    msgs = "User".query.all()
+    msgs = User.query.all()
     return render_template('user.html', users=msgs)
 
 # IoT API
@@ -106,18 +109,105 @@ def locationSolved():
 @app.route("/api/v1/signup", methods=['POST'])
 def signup():
     msg = request.json
-    user = User()
-    user.accountId = msg["consumerAccountID"]
-    user.firstname = msg["firstName"]
-    user.lastname = msg["lastName"]
-    user.phoneNo = msg["phoneNo"]
-    user.email = msg["email"]
-    user.username = msg["username"]
-    user.password = msg["password"]
-    db.session.add(user)
-    db.session.commit()
-    resp = jsonify(success=True) # { "success": true }
-    return resp
+    user = User.query.filter_by(email=msg.get('email')).first()
+    if not user:
+        try:
+            user = User(msg["email"], msg["password"])
+            user.accountId = msg["consumerAccountID"]
+            user.firstname = msg["firstName"]
+            user.lastname = msg["lastName"]
+            user.phoneNo = msg["phoneNo"]
+            db.session.add(user)
+            db.session.commit()
+            auth_token = user.encode_auth_token(user.id)
+            responseObject = {
+                'status': 'success',
+                'message': 'Successfully registered.',
+                'auth_token': auth_token
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 401
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'User already exists. Please Log in.',
+        }
+        return jsonify(responseObject), 202
+
+@app.route("/api/v1/login", methods=['POST'])
+def login():
+    post_data = request.json
+    try:
+        # fetch the user data
+        user = User.query.filter_by( email=post_data.get('email') ).first()
+        if user and bcrypt.check_password_hash( user.password, post_data.get('password') ):
+            auth_token = user.encode_auth_token(user.id)
+            if auth_token:
+                responseObject = {
+                    'status': 'success',
+                    'message': 'Successfully logged in.',
+                    'auth_token': auth_token
+                }
+                return jsonify(responseObject), 200
+        else:
+            responseObject = {
+                'status': 'fail',
+                'message': 'User does not exist.'
+            }
+            return jsonify(responseObject), 404
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+@app.route("/api/v1/logout", methods=['POST'])
+def logout():
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        auth_token = auth_header.split(" ")[1]
+    else:
+        auth_token = ''
+    if auth_token:
+        resp = User.decode_auth_token(auth_token)
+        if not isinstance(resp, str):
+            # mark the token as blacklisted
+            blacklist_token = BlacklistToken(token=auth_token)
+            try:
+                # insert the token
+                db.session.add(blacklist_token)
+                db.session.commit()
+                responseObject = {
+                    'status': 'success',
+                    'message': 'Successfully logged out.'
+                }
+                return jsonify(responseObject), 200
+            except Exception as e:
+                responseObject = {
+                    'status': 'fail',
+                    'message': e
+                }
+                return jsonify(responseObject), 200
+        else:
+            responseObject = {
+                'status': 'fail',
+                'message': resp
+            }
+            return jsonify(responseObject), 401
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'Provide a valid auth token.'
+        }
+        return jsonify(responseObject), 403
 
 
 # Data model
@@ -140,6 +230,70 @@ class User(db.Model):
         ).decode()
         self.registered_on = datetime.datetime.now()
         self.admin = admin
+
+    def encode_auth_token(self, user_id):
+        """
+        Generates the Auth Token
+        :return: string
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+                'iat': datetime.datetime.utcnow(),
+                'sub': user_id
+            }
+            return jwt.encode(
+                payload,
+                app.config.get('SECRET_KEY'),
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
+
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """
+        Decodes the auth token
+        :param auth_token:
+        :return: integer|string
+        """
+        try:
+            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'))
+            is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
+            if is_blacklisted_token:
+                return 'Token logged out. Please log in again.'
+            else:
+                return payload['sub']
+        except jwt.ExpiredSignatureError:
+            return 'Signature expired. Please log in again.'
+        except jwt.InvalidTokenError:
+            return 'Invalid token. Please log in again.'
+
+    @staticmethod
+    def check_blacklist(auth_token):
+        # check whether auth token has been blacklisted
+        res = BlacklistToken.query.filter_by(token=str(auth_token)).first()
+        if res:
+            return True
+        else:
+            return False
+
+class BlacklistToken(db.Model):
+    """
+    Token Model for storing JWT tokens
+    """
+    __tablename__ = 'blacklist_tokens'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, nullable=False)
+
+    def __init__(self, token):
+        self.token = token
+        self.blacklisted_on = datetime.datetime.now()
+
+    def __repr__(self):
+        return '<id: token: {}'.format(self.token)
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
