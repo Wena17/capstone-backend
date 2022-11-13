@@ -130,7 +130,7 @@ class User(db.Model):
     phoneNo = db.Column(db.String(15))
     email = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    registered_on = db.Column(db.DateTime, nullable=False)
+    registered_on = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, email, password, admin=False):

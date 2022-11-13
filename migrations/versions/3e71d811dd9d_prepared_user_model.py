@@ -1,8 +1,8 @@
-"""Added password encryption to User model
+"""Prepared user model
 
-Revision ID: 509e1cdec2fa
+Revision ID: 3e71d811dd9d
 Revises: b55a767559ac
-Create Date: 2022-11-13 20:49:04.117407
+Create Date: 2022-11-13 21:37:53.128648
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '509e1cdec2fa'
+revision = '3e71d811dd9d'
 down_revision = 'b55a767559ac'
 branch_labels = None
 depends_on = None
