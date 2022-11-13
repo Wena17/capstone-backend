@@ -208,7 +208,7 @@ def logout():
             'message': 'Provide a valid auth token.'
         }
         return jsonify(responseObject), 403
-
+        
 
 # Data model
 
