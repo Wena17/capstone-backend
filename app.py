@@ -24,8 +24,8 @@ bcrypt = Bcrypt(app)
 JOIN_ACCEPT = 1
 
 @app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+def show_homes():
+    return render_template('home.html')
 
 @app.route("/health")
 def health_check():
@@ -49,6 +49,11 @@ def show_device(dev_id):
 @app.route('/registration/<string:dev_id>')
 def show_registration(dev_id):
     return render_template('registration.html', dev_id=dev_id)
+
+@app.route('/user')
+def show_users():
+    msgs = "User".query.all()
+    return render_template('user.html', users=msgs)
 
 # IoT API
 
@@ -80,7 +85,7 @@ def joinAccept():
     msg = request.json
     # TODO: Only accept join requests from previouslz registered devices
     print(f"---> Received join accept: {msg}")
-    if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
     else:
         dev_msg = DeviceMessage()
