@@ -4,6 +4,7 @@ from flask_migrate import Migrate
 import os
 import dotenv
 import datetime
+from flask_bcrypt import Bcrypt
 
 dotenv.load_dotenv()
 
@@ -17,7 +18,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
 )
 
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+migrate = Migrate(app, db, compare_type=True)
+bcrypt = Bcrypt(app)
 
 JOIN_ACCEPT = 1
 
@@ -117,12 +119,22 @@ def signup():
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    accountId = db.Column(db.Integer, nullable=False)
-    firstname = db.Column(db.String(100), nullable=False)
-    lastname = db.Column(db.String(100), nullable=False)
-    phoneNo = db.Column(db.String(15), nullable=False)
+    accountId = db.Column(db.Integer)
+    firstname = db.Column(db.String(100))
+    lastname = db.Column(db.String(100))
+    phoneNo = db.Column(db.String(15))
     email = db.Column(db.String(100), nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
+    registered_on = db.Column(db.DateTime, nullable=False)
+    admin = db.Column(db.Boolean, nullable=False, default=False)
+
+    def __init__(self, email, password, admin=False):
+        self.email = email
+        self.password = bcrypt.generate_password_hash(
+            password, app.config.get('BCRYPT_LOG_ROUNDS')
+        ).decode()
+        self.registered_on = datetime.datetime.now()
+        self.admin = admin
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
