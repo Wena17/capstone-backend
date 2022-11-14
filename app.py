@@ -211,6 +211,57 @@ def logout():
         }
         return jsonify(responseObject), 403
 
+@app.route("/api/v1/add-pinned-location", methods=['POST'])
+def pinnedLocation():
+    msg = request.json
+    try:
+        loc_msg = PinnedLocation()
+        loc_msg.name = msg["name"]
+        loc_msg.address = msg["address"]
+        loc_msg.user_id = msg["user_id"]
+        db.session.add(loc_msg)
+        db.session.commit()
+        responseObject = {
+            'status': 'success',
+            'message': 'Pinned location added successfully added.'
+        }
+        return jsonify(responseObject), 201
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 401
+
+@app.route("/api/v1/view-pinned-location", methods=['POST'])
+def viewPinnedLocation():
+    post_data = request.json
+    try:
+        # fetch the user pinned location
+        user = PinnedLocation.query.filter_by( user_id=post_data.get('user_id') ).first()
+        if user:
+            name = PinnedLocation.name
+            address = PinnedLocation.address
+            responseObject = {
+                'status': 'success',
+                'name': name,
+                'address': address,
+            }
+            return jsonify(responseObject), 200
+        else:
+            responseObject = {
+                'status': 'fail',
+                'message': 'Pinned location does not exist.'
+            }
+            return jsonify(responseObject), 404
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
 
 # Data model
 
@@ -307,6 +358,8 @@ class BlacklistToken(db.Model):
         else:
             return False
 
+#IOT Data model
+
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dev_id = db.Column(db.String(32), index=True, nullable=False, unique=True)
@@ -326,3 +379,11 @@ class DeviceMessage(db.Model):
         else:
             names = ['Unknown Message', 'Join Accept']
             return names[self.msg_type]
+
+#App Data Model
+
+class PinnedLocation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    address = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
