@@ -148,11 +148,13 @@ def login():
         user = User.query.filter_by( email=post_data.get('email') ).first()
         if user and bcrypt.check_password_hash( user.password, post_data.get('password') ):
             auth_token = user.encode_auth_token(user.id)
+            user_id = user.id
             if auth_token:
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully logged in.',
-                    'auth_token': auth_token
+                    'auth_token': auth_token,
+                    'user_id': user_id
                 }
                 return jsonify(responseObject), 200
         else:
@@ -208,7 +210,7 @@ def logout():
             'message': 'Provide a valid auth token.'
         }
         return jsonify(responseObject), 403
-        
+
 
 # Data model
 
@@ -238,7 +240,7 @@ class User(db.Model):
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=100),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=600),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }
