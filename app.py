@@ -241,7 +241,7 @@ def pinnedLocation():
 def viewPinnedLocation():
     try:
         # fetch the user pinned location
-        auth = request.headers.get("authToken")
+        auth = request.headers.get('Authorization')
         token = auth.split(" ")[1]
         user_id = User.decode_auth_token(token)
         query = select(PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
