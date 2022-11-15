@@ -237,12 +237,11 @@ def pinnedLocation():
         }
         return jsonify(responseObject), 401
 
-@app.route("/api/v1/view-pinned-location", methods=['POST'])
+@app.route("/api/v1/pinned-locations", methods=['GET'])
 def viewPinnedLocation():
-    post_data = request.json
     try:
         # fetch the user pinned location
-        user_id = User.decode_auth_token(post_data["authToken"])
+        user_id = User.decode_auth_token(request.headers.get("authToken"))
         query = select(PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
