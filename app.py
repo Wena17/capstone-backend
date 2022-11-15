@@ -247,18 +247,11 @@ def viewPinnedLocation():
         print("Exists: " + str(exists))
         #TODO return array of the response
         locs = [{'name': name, 'address': address} for (name, address) in exists]
-        if len(locs) == 0:
-            responseObject = {
-                'status': 'fail',
-                'message': 'Pinned location does not exist.'
-            }
-            return jsonify(responseObject), 404
-        else:
-            responseObject = {
-                'status': 'success',
-                'locations': locs
-            }
-            return jsonify(responseObject), 200
+        responseObject = {
+            'status': 'success',
+            'locations': locs
+        }
+        return jsonify(responseObject), 200
     except Exception as e:
         print(e)
         responseObject = {
