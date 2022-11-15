@@ -244,11 +244,11 @@ def viewPinnedLocation():
         auth = request.headers.get('Authorization')
         token = auth.split(" ")[1]
         user_id = User.decode_auth_token(token)
-        query = select(PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
+        query = select(PinnedLocation.id, PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
         #TODO return array of the response
-        locs = [{'name': name, 'address': address} for (name, address) in exists]
+        locs = [{'id': id, 'name': name, 'address': address} for (name, address) in exists]
         responseObject = {
             'status': 'success',
             'locations': locs
