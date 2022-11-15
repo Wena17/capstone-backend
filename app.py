@@ -241,7 +241,9 @@ def pinnedLocation():
 def viewPinnedLocation():
     try:
         # fetch the user pinned location
-        user_id = User.decode_auth_token(request.headers.get("authToken"))
+        auth = request.headers.get("authToken")
+        token = auth.split(" ")[1]
+        user_id = User.decode_auth_token(token)
         query = select(PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
