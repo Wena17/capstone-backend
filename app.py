@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from sqlalchemy import select
 import os
 import dotenv
 import datetime
@@ -214,11 +215,13 @@ def logout():
 @app.route("/api/v1/add-pinned-location", methods=['POST'])
 def pinnedLocation():
     msg = request.json
+    user_id = User.decode_auth_token(msg["authToken"])
+    print(user_id)
     try:
         loc_msg = PinnedLocation()
         loc_msg.name = msg["name"]
         loc_msg.address = msg["address"]
-        loc_msg.user_id = msg["user_id"]
+        loc_msg.user_id = user_id
         db.session.add(loc_msg)
         db.session.commit()
         responseObject = {
@@ -239,22 +242,24 @@ def viewPinnedLocation():
     post_data = request.json
     try:
         # fetch the user pinned location
-        user = PinnedLocation.query.filter_by( user_id=post_data.get('user_id') ).first()
-        if user:
-            name = PinnedLocation.name
-            address = PinnedLocation.address
-            responseObject = {
-                'status': 'success',
-                'name': name,
-                'address': address,
-            }
-            return jsonify(responseObject), 200
-        else:
+        user_id = User.decode_auth_token(post_data["authToken"])
+        query = select(PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        #TODO return array of the response
+        locs = [{'name': name, 'address': address} for (name, address) in exists]
+        if len(locs) == 0:
             responseObject = {
                 'status': 'fail',
                 'message': 'Pinned location does not exist.'
             }
             return jsonify(responseObject), 404
+        else:
+            responseObject = {
+                'status': 'success',
+                'locations': locs
+            }
+            return jsonify(responseObject), 200
     except Exception as e:
         print(e)
         responseObject = {
