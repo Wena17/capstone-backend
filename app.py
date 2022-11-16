@@ -216,7 +216,6 @@ def logout():
 def pinnedLocation():
     msg = request.json
     user_id = User.decode_auth_token(msg["authToken"])
-    print(user_id)
     try:
         loc_msg = PinnedLocation()
         loc_msg.name = msg["name"]
@@ -261,6 +260,31 @@ def viewPinnedLocation():
             'message': 'Try again'
         }
         return jsonify(responseObject), 500
+
+@app.route("/api/v1/add-alternative-power-source", methods=['POST'])
+def AlternativePowerSource():
+    msg = request.json
+    user_id = User.decode_auth_token(msg["authToken"])
+    try:
+        src_msg = AlternativePowerSource()
+        src_msg.name = msg["name"]
+        src_msg.address = msg["address"]
+        src_msg.payment = msg["payment"]
+        src_msg.user_id = user_id
+        db.session.add(src_msg)
+        db.session.commit()
+        responseObject = {
+            'status': 'success',
+            'message': 'Alternative power source added successfully added.'
+        }
+        return jsonify(responseObject), 201
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 401
 
 # Data model
 
@@ -385,4 +409,10 @@ class PinnedLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     address = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+class AlternativePowerSource(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    address = db.Column(db.String(255))
+    payment = db.Column(db.String(50))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
