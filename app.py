@@ -248,7 +248,7 @@ def viewPinnedLocation():
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
         #TODO return array of the response
-        locs = [{'id': id, 'name': name, 'address': address} for (name, address) in exists]
+        locs = [{'id': id, 'name': name, 'address': address} for (id, name, address) in exists]
         responseObject = {
             'status': 'success',
             'locations': locs
