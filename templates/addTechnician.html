@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <center><div class="card mt-5">
+      <div class="card-header">
+        Add Technician
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <label for="inputFName" class="form-label">Firstname</label>
+          <input type="text" class="form-control" id="inputFName" aria-describedby="emailHelp">
+        </div>
+        <div class="mb-3">
+          <label for="inputLName" class="form-label">Lastname</label>
+          <input type="text" class="form-control" id="inputLName" aria-describedby="emailHelp">
+        </div>
+        <div class="mb-3">
+          <label for="inputPhoneno" class="form-label">Phone number</label>
+          <input type="text" class="form-control" id="inputPhoneno" aria-describedby="emailHelp">
+        </div>
+        <div class="mb-3">
+          <label for="inputEmail" class="form-label">Email</label>
+          <input type="email" class="form-control" id="inputEmail" width=50%>
+        </div>
+        <button type="submit" class="btn btn-primary  mx-auto" style="width: 80% ">Add</button>
+      </div>
+    </div></center>
+
+{% endblock %}

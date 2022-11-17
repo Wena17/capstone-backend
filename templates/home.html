@@ -1,18 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Home</h1>
-    <center><form >
-        <img src="{{ url_for('static', filename='UTLogo.png') }}">
+    <form >
+      <img src="{{ url_for('static', filename='UTLogo.png') }}" width="10%" height="10%">
       <div class="mb-3">
-        <label for="inputEmail1" class="form-label">Email address</label>
-        <input type="email" class="form-control" id="inputEmail1" aria-describedby="emailHelp">
+        <label for="inputEmail1" class="form-label">Email address/Username</label>
+        <input type="email" class="form-control" id="inputEmail1" aria-describedby="emailHelp" width=50%>
       </div>
       <div class="mb-3">
         <label for="inputPassword" class="form-label">Password</label>
-        <input type="password" class="form-control" id="inputPassword">
+        <input type="password" class="form-control" id="inputPassword" width=50%>
       </div>
       <button type="submit" class="btn btn-primary">Login</button>
-    </form></center>
+    </form>
 
 {% endblock %}

@@ -40,6 +40,10 @@ def show_messages():
     msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
     return render_template('messages.html', messages=msgs)
 
+@app.route("/add-technician")
+def show_form():
+    return render_template('addTechnician.html')
+
 @app.route('/devices')
 def show_devices():
     data = Device.query.order_by(Device.ts).all()
