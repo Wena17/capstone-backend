@@ -300,6 +300,8 @@ class User(db.Model):
     phoneNo = db.Column(db.String(15))
     email = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
     registered_on = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
@@ -419,4 +421,6 @@ class AlternativePowerSource(db.Model):
     name = db.Column(db.String(100))
     address = db.Column(db.String(255))
     payment = db.Column(db.String(50))
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
