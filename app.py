@@ -297,6 +297,8 @@ def AlternativePowerSource():
 @app.route("/api/v1/pinned-location/<id>", methods=['DELETE'])
 def delete_pinned_location(id):
     user_id = User.decode_auth_token(getAuthToken(request))
+    if not isinstance(user_id, int):
+        return '', 403
     loc = PinnedLocation.query.filter_by(id=id, user_id=user_id).first()
     if loc:
         db.session.delete(loc)
