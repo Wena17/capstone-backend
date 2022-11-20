@@ -240,6 +240,10 @@ def pinnedLocation():
         }
         return jsonify(responseObject), 401
 
+def getAuthToken(req):
+    auth = request.headers.get('Authorization')
+    return auth.split(" ")[1]
+
 @app.route("/api/v1/pinned-locations", methods=['GET'])
 def viewPinnedLocation():
     try:
@@ -290,20 +294,14 @@ def AlternativePowerSource():
         }
         return jsonify(responseObject), 401
 
-@app.route("/api/v1/delete-pinned-location", methods=['POST'])
-def delete_pinned_location():
-    msg = request.json
-    user_id = User.decode_auth_token(msg["authToken"])
-    id = msg["id"]
+@app.route("/api/v1/pinned-location/<id>", methods=['DELETE'])
+def delete_pinned_location(id):
+    user_id = User.decode_auth_token(getAuthToken(request))
     loc = PinnedLocation.query.filter_by(id=id, user_id=user_id).first()
     if loc:
         db.session.delete(loc)
         db.session.commit()
-        responseObject = {
-            'status': 'success',
-            'message': 'Pinned location successfully deleted.',
-        }
-        return jsonify(responseObject), 200
+        return '', 204
     else:
         responseObject = {
             'status': 'fail',
