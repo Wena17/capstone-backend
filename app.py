@@ -346,7 +346,7 @@ def delete_pinned_location(id):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    accountId = db.Column(db.Integer)
+    accountId = db.Column(db.String(100))
     firstname = db.Column(db.String(100))
     lastname = db.Column(db.String(100))
     phoneNo = db.Column(db.String(15))
