@@ -111,6 +111,36 @@ def locationSolved():
     resp = jsonify(success=True) # { "success": true }
     return resp
 
+@app.route("/api/v1/users/<int:id>", methods=['PUT', 'GET'])
+def users(id):
+    user_id = User.decode_auth_token(getAuthToken(request))
+    if not user_id or user_id != id:
+        return '', 403
+    user = User.query.filter_by(id=id).first()
+    if not user:
+        return '', 404
+    if request.method == 'PUT':
+        msg = request.json
+        try:
+            user.accountId = msg["consumerAccountID"]
+            user.firstname = msg["firstName"]
+            user.lastname = msg["lastName"]
+            user.phoneNo = msg["phoneNo"]
+            db.session.add(user)
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 500
+    else:
+        return jsonify({'user_id': user.id, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+
+
+
 @app.route("/api/v1/signup", methods=['POST'])
 def signup():
     msg = request.json
@@ -144,6 +174,7 @@ def signup():
             'message': 'User already exists. Please Log in.',
         }
         return jsonify(responseObject), 202
+
 
 @app.route("/api/v1/login", methods=['POST'])
 def login():
