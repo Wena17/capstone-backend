@@ -290,6 +290,27 @@ def AlternativePowerSource():
         }
         return jsonify(responseObject), 401
 
+@app.route("/api/v1/delete-pinned-location", methods=['POST'])
+def delete_pinned_location():
+    msg = request.json
+    user_id = User.decode_auth_token(msg["authToken"])
+    id = msg["id"]
+    loc = PinnedLocation.query.filter_by(id=id, user_id=user_id).first()
+    if loc:
+        db.session.delete(loc)
+        db.session.commit()
+        responseObject = {
+            'status': 'success',
+            'message': 'Pinned location successfully deleted.',
+        }
+        return jsonify(responseObject), 200
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 404
+
 # Data model
 
 class User(db.Model):
