@@ -137,7 +137,7 @@ def users(id):
             }
             return jsonify(responseObject), 500
     else:
-        return jsonify({'user_id': user.id, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+        return jsonify({'user_id': user.id, 'password': user.password', 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
 
 
 
@@ -185,12 +185,14 @@ def login():
         if user and bcrypt.check_password_hash( user.password, post_data.get('password') ):
             auth_token = user.encode_auth_token(user.id)
             user_id = user.id
+            firstname = user.firstname
             if auth_token:
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully logged in.',
                     'auth_token': auth_token,
-                    'user_id': user_id
+                    'user_id': user_id,
+                    'fname': firstname
                 }
                 return jsonify(responseObject), 200
         else:
