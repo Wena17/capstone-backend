@@ -137,7 +137,7 @@ def users(id):
             }
             return jsonify(responseObject), 500
     else:
-        return jsonify({'user_id': user.id, 'password': user.password', 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+        return jsonify({'user_id': user.id, 'password': user.password, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
 
 
 
