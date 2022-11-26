@@ -391,6 +391,8 @@ class User(db.Model):
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
     registered_on = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
+    technician = db.Column(db.Boolean, nullable=False, default=False)
+    superadmin = db.Column(db.Boolean, nullable=False, default=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
 
     def __init__(self, email, password, admin=False):
