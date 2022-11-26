@@ -1,30 +1,59 @@
 {% extends "base.html" %}
 
 {% block content %}
-
-    <center><div class="card mt-5">
-      <div class="card-header">
-        Add Technician
+<div class="jumbotron  jumbotron-fluid bg-transparent">
+  <div class="row  justify-content-center">
+    <div class="card w-50 mt-5" style="background-color: rgba(255,255,255,.5);">
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">Add Technician</h1>
       </div>
       <div class="card-body">
-        <div class="mb-3">
-          <label for="inputFName" class="form-label">Firstname</label>
-          <input type="text" class="form-control" id="inputFName" aria-describedby="emailHelp">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Firstname</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="fName">
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="inputLName" class="form-label">Lastname</label>
-          <input type="text" class="form-control" id="inputLName" aria-describedby="emailHelp">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Lastname</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="lName">
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="inputPhoneno" class="form-label">Phone number</label>
-          <input type="text" class="form-control" id="inputPhoneno" aria-describedby="emailHelp">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Phone number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="phoneNo">
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="mb-3">
-          <label for="inputEmail" class="form-label">Email</label>
-          <input type="email" class="form-control" id="inputEmail" width=50%>
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Email / Username</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="username">
+              </div>
+            </div>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary  mx-auto" style="width: 80% ">Add</button>
+        <div class="d-flex mt-3 justify-content-center">
+          <button id="btnLogin" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Submit</button>
+        </div>
       </div>
-    </div></center>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

@@ -344,6 +344,40 @@ def delete_pinned_location(id):
         }
         return jsonify(responseObject), 404
 
+@app.route("/api/v1/add-schedule-outage", methods=['POST'])
+def ScheduleOutage():
+    msg = request.json
+    user_id = User.decode_auth_token(msg["authToken"])
+    start = msg["startDate"]+ " " +msg["startTime"]
+    print("Start: " + start)
+    start_date_time = datetime.datetime.strptime(start, '%d/%m/%y %H:%M:%S')
+    end = msg["endDate"]+ " " +msg["endTime"]
+    end_date_time = datetime.datetime.strptime(end, '%d/%m/%y %H:%M:%S')
+    try:
+        sched_msg = ScheduleOutages()
+        sched_msg.purpose = msg["purpose"]
+        sched_msg.Location = msg["location"]
+        sched_msg.start = start_date_time
+        sched_msg.end = end_date_time
+        sched_msg.lat = msg["lat"]
+        sched_msg.long = msg["long"]
+        sched_msg.user_id = user_id
+        db.session.add(sched_msg)
+        db.session.commit()
+        responseObject = {
+            'status': 'success',
+            'message': 'Schedule outage added successfully added.'
+        }
+        return jsonify(responseObject), 201
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 401
+
+
 # Data model
 
 class User(db.Model):
@@ -470,6 +504,7 @@ class PinnedLocation(db.Model):
     name = db.Column(db.String(100))
     address = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 class AlternativePowerSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
@@ -477,4 +512,15 @@ class AlternativePowerSource(db.Model):
     payment = db.Column(db.String(50))
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class ScheduleOutages(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    purpose = db.Column(db.String(255))
+    Location = db.Column(db.String(255))
+    start = db.Column(db.DateTime, default=datetime.datetime.now)
+    end = db.Column(db.DateTime)
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
+    status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

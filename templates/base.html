@@ -4,12 +4,32 @@
     <title>Outage Monitor</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <link rel="stylesheet" href="{{ url_for('static', filename='leaflet.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
     <script src="{{ url_for('static', filename='leaflet.js') }}"></script>
   </head>
-  <body>
+  <body  style="background-image: url({{ url_for('static', filename='bg.jpg') }});">
     <div class="container">
-      <nav class="navbar navbar-expand-lg bg-light">
-        <a class="navbar-brand" href="/">UtilityTracker</a>
+      <nav class="navbar navbar-expand-md navbar-dark bg-transparent">
+          <a class="navbar-brand text-success font-weight-bold" href="/">Utility Tracker</a>
+          <div>
+              <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarNav">
+                  <span class="navbar-toggler-icon"></span>
+                  <span class="navbar-toggler-icon"></span>
+                  <span class="navbar-toggler-icon"></span>
+              </button>
+
+          </div>
+          <div class="collapse navbar-collapse">
+              <ul class="navbar-nav mr-auto">
+                <li class="nav-item"> <a class="nav-link" href="/user">Users</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="/devices">Devices</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="/messages">Messages</a> </li>
+                <li class="nav-item"> <a class="nav-link" href="/add-technician">Add Technician</a> </li>
+              </ul>
+          </div>
+      </nav>
+      <!-- <nav class="navbar fixed-top bar-expand-lg navbar-inner rounded-bottom">
+        <a class="navbar-brand text-success font-weight-bold" href="/">Utility Tracker</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
@@ -19,11 +39,13 @@
             <li class="nav-item"> <a class="nav-link" href="/devices">Devices</a> </li>
             <li class="nav-item"> <a class="nav-link" href="/messages">Messages</a> </li>
             <li class="nav-item"> <a class="nav-link" href="/add-technician">Add Technician</a> </li>
+            <li class="nav-item"> <a class="nav-link" href="/temp">Temporary</a> </li>
           </ul>
         </div>
-      </nav>
+      </nav> -->
       {% block content %}{% endblock %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
   </body>
 </html>
