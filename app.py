@@ -8,6 +8,7 @@ import datetime
 from flask_bcrypt import Bcrypt
 import jwt
 import base64
+import struct
 
 dotenv.load_dotenv()
 
@@ -82,9 +83,8 @@ def uplinkMessage():
     if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
     else:
-        voltage = base64.b64decode(msg["frm_payload"])
-        str_vol = voltage.decode("ascii")
-        print("Voltage: " + str_vol)
+        voltage = struct.unpack("f", base64.b64decode(msg["frm_payload"]))str_vol = voltage.decode("ascii")
+        print(f"Voltage: {voltage}")
     resp = jsonify(success=True) # { "success": true }
     return resp
 
