@@ -7,6 +7,7 @@ import dotenv
 import datetime
 from flask_bcrypt import Bcrypt
 import jwt
+import base64
 
 dotenv.load_dotenv()
 
