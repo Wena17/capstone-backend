@@ -78,6 +78,12 @@ def register_device():
 def uplinkMessage():
     msg = request.json
     print(f"---> Received uplink message: {msg}")
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
+        return ("Wrong application ID", 403)
+    else:
+        voltage = base64.b64decode(msg["frm_payload"])
+        str_vol = voltage.decode("ascii")
+        print("Voltage: " + str_vol)
     resp = jsonify(success=True) # { "success": true }
     return resp
 
@@ -91,7 +97,7 @@ def normalizedUplink():
 @app.route("/api/v1/iot/joinAccept", methods=['POST'])
 def joinAccept():
     msg = request.json
-    # TODO: Only accept join requests from previouslz registered devices
+    # TODO: Only accept join requests from previously registered devices
     print(f"---> Received join accept: {msg}")
     if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
