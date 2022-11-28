@@ -82,10 +82,20 @@ def uplinkMessage():
     print(f"---> Received uplink message: {msg}")
     if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
-    else:
-        voltage = struct.unpack("f", base64.b64decode(msg["frm_payload"]))
-        print(f"Voltage: {voltage}")
-    resp = jsonify(success=True) # { "success": true }
+    (voltage, ) = struct.unpack("f", base64.b64decode(msg["uplink_message"]["frm_payload"]))
+    voltage = round(voltage, 2)
+    print(f"Voltage: {voltage}")
+    dev = Device.query.filter_by(dev_id=msg["end_device_ids"]["device_id"]).first()
+    if dev == None:
+        return ("Unknown device ID", 404)
+    out = Outage()
+    out.voltage =voltage
+    out.dev_id=dev.id
+    out.lat=dev.lat
+    out.long=dev.long
+    db.session.add(out)
+    db.session.commit()
+    resp = jsonify(success=True, outage_id = out.id) # { "success": true }
     return resp
 
 @app.route("/api/v1/iot/normalizedUplink", methods=['POST'])
@@ -505,6 +515,17 @@ class DeviceMessage(db.Model):
         else:
             names = ['Unknown Message', 'Join Accept']
             return names[self.msg_type]
+
+class Outage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    start_time = db.Column(db.DateTime, default=datetime.datetime.now)
+    end_time = db.Column(db.DateTime)
+    outage_type = db.Column(db.Integer, default=0)
+    outage_reason = db.Column(db.String(255))
+    voltage = db.Column(db.Float)
+    lat = db.Column(db.Float)
+    long = db.Column(db.Float)
+    dev_id = db.Column(db.Integer, db.ForeignKey('device.id'))
 
 #App Data Model
 
