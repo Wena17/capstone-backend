@@ -83,7 +83,7 @@ def uplinkMessage():
     if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
     else:
-        voltage = struct.unpack("f", base64.b64decode(msg["frm_payload"]))str_vol = voltage.decode("ascii")
+        voltage = struct.unpack("f", base64.b64decode(msg["frm_payload"]))
         print(f"Voltage: {voltage}")
     resp = jsonify(success=True) # { "success": true }
     return resp
