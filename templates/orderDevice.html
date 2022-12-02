@@ -1,1 +1,47 @@
-<!-- TODO -->
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-7 justify-content-start mt-5">
+      <div class="card shadow-lg mb-4 bg-transparent mt-5">
+          <div class="card-header">
+              <div class="form-group d-flex justify-content-center">
+                  <h3 class="font-weight-light my-2">Order Device</h3>
+              </div>
+          </div>
+          <div class="card-body">
+              <form id="requestTypeForm" method="post" action="">
+                  <div class="row">
+                    <div class="col-md-6">
+                        <label for="txtUnit">Number of device</label>
+                        <div class="form-group">
+                            <input class="form-control" id="txtUnit" name="copies" type="number" min="1"/>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="txtPrice">Price</label>
+                        <div class="form-group">
+                            <input class="form-control" id="txtPrice" type="text" readonly />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="txtAmount">Total Amount</label>
+                        <div class="form-group">
+                            <input class="form-control" id="txtAmount" type="text" readonly />
+                        </div>
+                    </div>
+                  </div><br />
+                  <div class="row">
+                      <div class="col-md-6 ml-auto">
+                          <div class="form-group">
+                              <input class="btn btn-block" id="btnSubmit" type="submit" value="Send Order" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);"/>
+                          </div>
+                      </div>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+</div>
+{% endblock %}

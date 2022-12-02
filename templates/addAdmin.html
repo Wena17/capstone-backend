@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron  jumbotron-fluid bg-transparent">
+  <div class="row justify-content-start mt-5">
+    <div class="card w-50 mt-5" style="background-color: rgba(255,255,255,.5);">
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">New Admin</h1>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>Company Name</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="company">
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>Owner Name</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="owner">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>Phone number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="phoneNo">
+              </div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>Email</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="username">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>TIN Number</label>
+              <div class="input-group">
+                <input type="text" class="form-control" id="username">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>Business Pemit</label>
+              <input type="file" id="businessPermit" name="Business Permit">
+              <input id="submit" type="submit" value="Upload" disabled />
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group-sm">
+              <label>DTI Permit</label>
+              <input type="file" id="dtiPermit" name="DTI Permit">
+              <input id="submit" type="submit" value="Upload" disabled />
+            </div>
+          </div>
+        </div>
+        <div class="d-flex mt-5 justify-content-center">
+          <button id="btnLogin" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Add Admin</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

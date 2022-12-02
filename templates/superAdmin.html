@@ -1,0 +1,44 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron bg-transparent">
+  <div class="row justify-content-start">
+    <div class="card bg-transparent border-0">
+      <div class="card-body">
+        <div class="d-flex ms-5">
+            <img src="{{ url_for('static', filename='UTLogo.png') }}" style="width:270px; height:270px;">
+        </div>
+      </div>
+    </div>
+    <div class="card w-50" style="background-color: rgba(255,255,255,.5);">
+      <div class="card-body">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Email / Username</label>
+              <div class="input-group">
+                  <input id="txtemail" type="email" class="form-control" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col">
+              <div class="form-group">
+                  <label>Password</label>
+                  <div class="input-group">
+                      <input id="txtpass" type="password" class="form-control" />
+                  </div>
+              </div>
+          </div>
+        </div>
+        <div class="d-flex mt-3 justify-content-center">
+          <button id="btnLogin" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Signup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
