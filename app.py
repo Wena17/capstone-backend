@@ -9,6 +9,7 @@ from flask_bcrypt import Bcrypt
 import jwt
 import base64
 import struct
+import geoalchemy2
 
 dotenv.load_dotenv()
 
@@ -22,8 +23,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
 )
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
+def include_object(object, name, type_, *args, **kwargs):
+        return not (type_ == 'table' and name in ['spatial_ref_sys'])
+
 db = SQLAlchemy(app)
-migrate = Migrate(app, db, compare_type=True)
+migrate = Migrate(app, db, compare_type=True, include_object=include_object)
 bcrypt = Bcrypt(app)
 
 # TTN message types
@@ -415,6 +419,7 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
     registered_on = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
     technician = db.Column(db.Boolean, nullable=False, default=False)
     superadmin = db.Column(db.Boolean, nullable=False, default=False)
