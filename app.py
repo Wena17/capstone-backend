@@ -58,6 +58,23 @@ def show_add_technician():
 def show_order_device():
     return render_template('orderDevice.html')
 
+@app.route("/api/v1/devices", methods=['GET'])
+def show_devices_on_map():
+    args = request.args
+    (lat, long, lat_delta, long_delta) = (args.get('lat', type=float), args.get('long', type=float), args.get('lat_delta', type=float), args.get('long_delta', type=float))
+    if lat is not None and long is not None and lat_delta is not None and long_delta is not None:
+        lat1 = lat - lat_delta
+        lat2 = lat1 + lat_delta
+        long1 = long - long_delta
+        long2 = long + long_delta
+        ls = geoalchemy2.elements.WKTElement(f"SRID=4326;LINESTRING({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2})")
+        poly = geoalchemy2.functions.ST_Polygon(ls)
+        devs = Device.query.filter(Device.geom.ST_Intersects(poly)).all()
+        print(f"Devices in range: {jsonify(devs)}")
+        return jsonify(devs), 200
+    else:
+        return jsonify(message="No map region provided"), 403
+
 @app.route('/devices')
 def show_devices():
     data = Device.query.order_by(Device.ts).all()
@@ -82,12 +99,15 @@ def show_users():
 @app.route("/api/v1/register-device", methods=["POST"])
 def register_device():
     data = request.json
-    (lat, long) = (data["lat"], data["long"])
-    dev = Device(dev_id=data["dev_id"], lat=lat, long=long, geom=f"SRID=4326;POINT({long} {lat})")
-    db.session.add(dev)
-    db.session.commit()
-    resp = jsonify(success=True) # { "success": true }
-    return resp
+    dev = Device.query.filter_by(dev_id=data["dev_id"]).first()
+    if dev == None:
+        (lat, long) = (data["lat"], data["long"])
+        dev = Device(dev_id=data["dev_id"], lat=lat, long=long, geom=f"SRID=4326;POINT({long} {lat})")
+        db.session.add(dev)
+        db.session.commit()
+        return jsonify(success=True), 201
+    else:
+        return jsonify(success=False, message="Device ID already registered"), 403
 
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
 def uplinkMessage():
