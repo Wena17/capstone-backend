@@ -181,6 +181,7 @@ def signup():
             user.firstname = msg["firstName"]
             user.lastname = msg["lastName"]
             user.phoneNo = msg["phoneNo"]
+            user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
             db.session.add(user)
             db.session.commit()
             auth_token = user.encode_auth_token(user.id)
