@@ -82,7 +82,8 @@ def show_users():
 @app.route("/api/v1/register-device", methods=["POST"])
 def register_device():
     data = request.json
-    dev = Device(dev_id=data["dev_id"], lat=data["lat"], long=data["long"])
+    (lat, long) = (data["lat"], data["long"])
+    dev = Device(dev_id=data["dev_id"], lat=lat, long=long, geom=f"SRID=4326;POINT({long} {lat})")
     db.session.add(dev)
     db.session.commit()
     resp = jsonify(success=True) # { "success": true }
@@ -100,13 +101,24 @@ def uplinkMessage():
     dev = Device.query.filter_by(dev_id=msg["end_device_ids"]["device_id"]).first()
     if dev == None:
         return ("Unknown device ID", 404)
-    out = Outage()
-    out.voltage =voltage
-    out.dev_id=dev.id
-    out.lat=dev.lat
-    out.long=dev.long
-    db.session.add(out)
-    db.session.commit()
+    out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(Outage.start_time.desc()).first()
+    if out == None and voltage < 1.0: # New outage
+        out = Outage()
+        out.voltage = voltage
+        out.dev_id=dev.id
+        out.lat=dev.lat
+        out.long=dev.long
+        out.geom = dev.geom
+        db.session.add(out)
+        db.session.commit()
+        # TODO notify_users(out)
+    elif out != None and voltage > 100.0: # Existing outage ended
+        out.end_time = datetime.datetime.now()
+        db.session.add(out)
+        db.session.commit()
+        # TODO notify_users(out)
+    else: # Either outage has not ended or no new outage began
+        pass
     resp = jsonify(success=True, outage_id = out.id) # { "success": true }
     return resp
 
@@ -515,6 +527,7 @@ class Device(db.Model):
     dev_id = db.Column(db.String(32), index=True, nullable=False, unique=True)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
 
 class DeviceMessage(db.Model):
@@ -539,6 +552,7 @@ class Outage(db.Model):
     voltage = db.Column(db.Float)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
     dev_id = db.Column(db.Integer, db.ForeignKey('device.id'))
 
 #App Data Model
@@ -556,6 +570,7 @@ class AlternativePowerSource(db.Model):
     payment = db.Column(db.String(50))
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 class ScheduleOutages(db.Model):
@@ -566,5 +581,6 @@ class ScheduleOutages(db.Model):
     end = db.Column(db.DateTime)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
+    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
     status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
