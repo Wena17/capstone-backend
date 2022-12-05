@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import select
+from sqlalchemy import select, func
 import os
 import dotenv
 import datetime
@@ -67,11 +67,11 @@ def show_devices_on_map():
         lat2 = lat1 + lat_delta
         long1 = long - long_delta
         long2 = long + long_delta
-        ls = geoalchemy2.elements.WKTElement(f"SRID=4326;LINESTRING({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2})")
-        poly = geoalchemy2.functions.ST_Polygon(ls)
-        devs = Device.query.filter(Device.geom.ST_Intersects(poly)).all()
-        print(f"Devices in range: {jsonify(devs)}")
-        return jsonify(devs), 200
+        poly = geoalchemy2.elements.WKTElement(f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
+        devs = db.session.query(Device).filter(func.ST_Contains(poly, Device.geom)).all()
+        print(f"Devices in range: {len(devs)}")
+        result = [{"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]
+        return jsonify(result), 200
     else:
         return jsonify(message="No map region provided"), 403
 
