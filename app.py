@@ -63,10 +63,10 @@ def show_devices_on_map():
     args = request.args
     (lat, long, lat_delta, long_delta) = (args.get('lat', type=float), args.get('long', type=float), args.get('lat_delta', type=float), args.get('long_delta', type=float))
     if lat is not None and long is not None and lat_delta is not None and long_delta is not None:
-        lat1 = lat - lat_delta
-        lat2 = lat1 + lat_delta
-        long1 = long - long_delta
-        long2 = long + long_delta
+        lat1 = lat - lat_delta * 1.1
+        lat2 = lat1 + lat_delta * 1.1
+        long1 = long - long_delta * 1.1
+        long2 = long + long_delta * 1.1
         poly = geoalchemy2.elements.WKTElement(f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
         devs = db.session.query(Device).filter(func.ST_Contains(poly, Device.geom)).all()
         print(f"Devices in range: {len(devs)}")
