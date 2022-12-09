@@ -70,7 +70,7 @@ def show_devices_on_map():
         poly = geoalchemy2.elements.WKTElement(f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
         devs = db.session.query(Device).filter(func.ST_Contains(poly, Device.geom)).all()
         print(f"Devices in range: {len(devs)}")
-        result = [{"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]
+        result = {"devices": [{"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]}
         return jsonify(result), 200
     else:
         return jsonify(message="No map region provided"), 403
@@ -213,7 +213,7 @@ def signup():
             user.firstname = msg["firstName"]
             user.lastname = msg["lastName"]
             user.phoneNo = msg["phoneNo"]
-            user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"            
+            user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
             db.session.add(user)
             db.session.commit()
             auth_token = user.encode_auth_token(user.id)
