@@ -74,13 +74,15 @@ def show_order_device():
 @app.route("/api/v1/devices", methods=['GET'])
 def show_devices_on_map():
     args = request.args
-    (lat, long, lat_delta, long_delta) = (args.get('lat', type=float), args.get('long',
-                                                                                type=float), args.get('lat_delta', type=float), args.get('long_delta', type=float))
-    if lat is not None and long is not None and lat_delta is not None and long_delta is not None:
-        lat1 = lat - lat_delta * 1.1
-        lat2 = lat + lat_delta * 1.1
-        long1 = long - long_delta * 1.1
-        long2 = long + long_delta * 1.1
+    lat = args.get('lat', type=float)
+    long = args.get('long', type=float)
+    lat_delta = args.get('lat_delta', type=float, default=0.1)
+    long_delta = args.get('long_delta', type=float, default=0.1)
+    if lat is not None and long is not None:
+        lat1 = lat - lat_delta
+        lat2 = lat + lat_delta
+        long1 = long - long_delta
+        long2 = long + long_delta
         poly = func.ST_SetSRID(func.ST_MakeEnvelope(
             long1, lat1, long2, lat2), 4326)
         devs = db.session.query(Device).filter(
