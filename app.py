@@ -11,6 +11,10 @@ import base64
 import struct
 import geoalchemy2
 
+import logging
+logging.basicConfig()
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
 dotenv.load_dotenv()
 
 app = Flask(__name__)
@@ -23,8 +27,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
 )
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 
+
 def include_object(object, name, type_, *args, **kwargs):
-        return not (type_ == 'table' and name in ['spatial_ref_sys'])
+    return not (type_ == 'table' and name in ['spatial_ref_sys'])
+
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db, compare_type=True, include_object=include_object)
@@ -33,61 +39,76 @@ bcrypt = Bcrypt(app)
 # TTN message types
 JOIN_ACCEPT = 1
 
+
 @app.route("/")
 def show_homes():
     return render_template('home.html')
 
+
 @app.route("/health")
 def health_check():
     return "I'm fine"
+
 
 @app.route('/messages')
 def show_messages():
     msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
     return render_template('messages.html', messages=msgs)
 
+
 @app.route("/admin")
 def show_admin():
     return render_template('addAdmin.html')
+
 
 @app.route("/add-technician")
 def show_add_technician():
     return render_template('addTechnician.html')
 
+
 @app.route("/order-device")
 def show_order_device():
     return render_template('orderDevice.html')
 
+
 @app.route("/api/v1/devices", methods=['GET'])
 def show_devices_on_map():
     args = request.args
-    (lat, long, lat_delta, long_delta) = (args.get('lat', type=float), args.get('long', type=float), args.get('lat_delta', type=float), args.get('long_delta', type=float))
+    (lat, long, lat_delta, long_delta) = (args.get('lat', type=float), args.get('long',
+                                                                                type=float), args.get('lat_delta', type=float), args.get('long_delta', type=float))
     if lat is not None and long is not None and lat_delta is not None and long_delta is not None:
         lat1 = lat - lat_delta * 1.1
         lat2 = lat1 + lat_delta * 1.1
         long1 = long - long_delta * 1.1
         long2 = long + long_delta * 1.1
-        poly = geoalchemy2.elements.WKTElement(f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
-        devs = db.session.query(Device).filter(func.ST_Contains(poly, Device.geom)).all()
+        poly = geoalchemy2.elements.WKTElement(
+            f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
+        devs = db.session.query(Device).filter(
+            func.ST_Contains(poly, Device.geom)).all()
         print(f"Devices in range: {len(devs)}")
-        result = {"devices": [{"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]}
+        result = {"devices": [
+            {"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]}
         return jsonify(result), 200
     else:
         return jsonify(message="No map region provided"), 403
+
 
 @app.route('/devices')
 def show_devices():
     data = Device.query.order_by(Device.ts).all()
     return render_template('devices.html', devices=data)
 
+
 @app.route('/devices/<string:dev_id>')
 def show_device(dev_id):
     dev = Device.query.filter_by(dev_id=dev_id).first()
     return render_template('device.html', dev=dev)
 
+
 @app.route('/registration/<string:dev_id>')
 def show_registration(dev_id):
     return render_template('registration.html', dev_id=dev_id)
+
 
 @app.route('/user')
 def show_users():
@@ -96,18 +117,21 @@ def show_users():
 
 # IoT API
 
+
 @app.route("/api/v1/register-device", methods=["POST"])
 def register_device():
     data = request.json
     dev = Device.query.filter_by(dev_id=data["dev_id"]).first()
     if dev == None:
         (lat, long) = (data["lat"], data["long"])
-        dev = Device(dev_id=data["dev_id"], lat=lat, long=long, geom=f"SRID=4326;POINT({long} {lat})")
+        dev = Device(dev_id=data["dev_id"], lat=lat,
+                     long=long, geom=f"SRID=4326;POINT({long} {lat})")
         db.session.add(dev)
         db.session.commit()
         return jsonify(success=True), 201
     else:
         return jsonify(success=False, message="Device ID already registered"), 403
+
 
 @app.route("/api/v1/iot/uplinkMessage", methods=['POST'])
 def uplinkMessage():
@@ -115,39 +139,44 @@ def uplinkMessage():
     print(f"---> Received uplink message: {msg}")
     if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
         return ("Wrong application ID", 403)
-    (voltage, ) = struct.unpack("f", base64.b64decode(msg["uplink_message"]["frm_payload"]))
+    (voltage, ) = struct.unpack("f", base64.b64decode(
+        msg["uplink_message"]["frm_payload"]))
     voltage = round(voltage, 2)
     print(f"Voltage: {voltage}")
-    dev = Device.query.filter_by(dev_id=msg["end_device_ids"]["device_id"]).first()
+    dev = Device.query.filter_by(
+        dev_id=msg["end_device_ids"]["device_id"]).first()
     if dev == None:
         return ("Unknown device ID", 404)
-    out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(Outage.start_time.desc()).first()
-    if out == None and voltage < 1.0: # New outage
+    out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(
+        Outage.start_time.desc()).first()
+    if out == None and voltage < 1.0:  # New outage
         out = Outage()
         out.voltage = voltage
-        out.dev_id=dev.id
-        out.lat=dev.lat
-        out.long=dev.long
+        out.dev_id = dev.id
+        out.lat = dev.lat
+        out.long = dev.long
         out.geom = dev.geom
         db.session.add(out)
         db.session.commit()
         # TODO notify_users(out)
-    elif out != None and voltage > 100.0: # Existing outage ended
+    elif out != None and voltage > 100.0:  # Existing outage ended
         out.end_time = datetime.datetime.now()
         db.session.add(out)
         db.session.commit()
         # TODO notify_users(out)
-    else: # Either outage has not ended or no new outage began
+    else:  # Either outage has not ended or no new outage began
         pass
-    resp = jsonify(success=True, outage_id = out.id) # { "success": true }
+    resp = jsonify(success=True, outage_id=out.id)  # { "success": true }
     return resp
+
 
 @app.route("/api/v1/iot/normalizedUplink", methods=['POST'])
 def normalizedUplink():
     msg = request.json
     print(f"---> Received normalized uplink: {msg}")
-    resp = jsonify(success=True) # { "success": true }
+    resp = jsonify(success=True)  # { "success": true }
     return resp
+
 
 @app.route("/api/v1/iot/joinAccept", methods=['POST'])
 def joinAccept():
@@ -162,15 +191,17 @@ def joinAccept():
         dev_msg.msg_type = JOIN_ACCEPT
         db.session.add(dev_msg)
         db.session.commit()
-    resp = jsonify(success=True) # { "success": true }
+    resp = jsonify(success=True)  # { "success": true }
     return resp
+
 
 @app.route("/api/v1/iot/locationSolved", methods=['POST'])
 def locationSolved():
     msg = request.json
     print(f"---> Received location solved: {msg}")
-    resp = jsonify(success=True) # { "success": true }
+    resp = jsonify(success=True)  # { "success": true }
     return resp
+
 
 @app.route("/api/v1/users/<int:id>", methods=['PUT', 'GET'])
 def users(id):
@@ -199,7 +230,6 @@ def users(id):
             return jsonify(responseObject), 500
     else:
         return jsonify({'user_id': user.id, 'password': user.password, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
-
 
 
 @app.route("/api/v1/signup", methods=['POST'])
@@ -243,8 +273,8 @@ def login():
     post_data = request.json
     try:
         # fetch the user data
-        user = User.query.filter_by( email=post_data.get('email') ).first()
-        if user and bcrypt.check_password_hash( user.password, post_data.get('password') ):
+        user = User.query.filter_by(email=post_data.get('email')).first()
+        if user and bcrypt.check_password_hash(user.password, post_data.get('password')):
             auth_token = user.encode_auth_token(user.id)
             user_id = user.id
             firstname = user.firstname
@@ -270,6 +300,7 @@ def login():
             'message': 'Try again'
         }
         return jsonify(responseObject), 500
+
 
 @app.route("/api/v1/logout", methods=['POST'])
 def logout():
@@ -311,6 +342,7 @@ def logout():
         }
         return jsonify(responseObject), 403
 
+
 @app.route("/api/v1/add-pinned-location", methods=['POST'])
 def pinnedLocation():
     msg = request.json
@@ -335,9 +367,11 @@ def pinnedLocation():
         }
         return jsonify(responseObject), 401
 
+
 def getAuthToken(req):
     auth = request.headers.get('Authorization')
     return auth.split(" ")[1]
+
 
 @app.route("/api/v1/pinned-locations", methods=['GET'])
 def viewPinnedLocation():
@@ -346,11 +380,13 @@ def viewPinnedLocation():
         auth = request.headers.get('Authorization')
         token = auth.split(" ")[1]
         user_id = User.decode_auth_token(token)
-        query = select(PinnedLocation.id, PinnedLocation.name, PinnedLocation.address).filter_by( user_id=user_id )
+        query = select(PinnedLocation.id, PinnedLocation.name,
+                       PinnedLocation.address).filter_by(user_id=user_id)
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
-        #TODO return array of the response
-        locs = [{'id': id, 'name': name, 'address': address} for (id, name, address) in exists]
+        # TODO return array of the response
+        locs = [{'id': id, 'name': name, 'address': address}
+                for (id, name, address) in exists]
         responseObject = {
             'status': 'success',
             'locations': locs
@@ -363,6 +399,7 @@ def viewPinnedLocation():
             'message': 'Try again'
         }
         return jsonify(responseObject), 500
+
 
 @app.route("/api/v1/add-alternative-power-source", methods=['POST'])
 def AlternativePowerSource():
@@ -389,6 +426,7 @@ def AlternativePowerSource():
         }
         return jsonify(responseObject), 401
 
+
 @app.route("/api/v1/pinned-location/<id>", methods=['DELETE'])
 def delete_pinned_location(id):
     user_id = User.decode_auth_token(getAuthToken(request))
@@ -406,14 +444,15 @@ def delete_pinned_location(id):
         }
         return jsonify(responseObject), 404
 
+
 @app.route("/api/v1/add-schedule-outage", methods=['POST'])
 def ScheduleOutage():
     msg = request.json
     user_id = User.decode_auth_token(msg["authToken"])
-    start = msg["startDate"]+ " " +msg["startTime"]
+    start = msg["startDate"] + " " + msg["startTime"]
     print("Start: " + start)
     start_date_time = datetime.datetime.strptime(start, '%d/%m/%y %H:%M:%S')
-    end = msg["endDate"]+ " " +msg["endTime"]
+    end = msg["endDate"] + " " + msg["endTime"]
     end_date_time = datetime.datetime.strptime(end, '%d/%m/%y %H:%M:%S')
     try:
         sched_msg = ScheduleOutages()
@@ -452,8 +491,10 @@ class User(db.Model):
     password = db.Column(db.String(255), nullable=False)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
-    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
-    registered_on = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now())
+    geom = db.Column(geoalchemy2.types.Geometry(
+        geometry_type="POINT", srid=4326, spatial_index=True))
+    registered_on = db.Column(
+        db.DateTime, nullable=False, default=datetime.datetime.now())
     technician = db.Column(db.Boolean, nullable=False, default=False)
     superadmin = db.Column(db.Boolean, nullable=False, default=False)
     admin = db.Column(db.Boolean, nullable=False, default=False)
@@ -493,7 +534,8 @@ class User(db.Model):
         :return: integer|string
         """
         try:
-            payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), algorithms=["HS256"])
+            payload = jwt.decode(auth_token, app.config.get(
+                'SECRET_KEY'), algorithms=["HS256"])
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
                 return 'Token logged out. Please log in again.'
@@ -513,6 +555,7 @@ class User(db.Model):
             return True
         else:
             return False
+
 
 class BlacklistToken(db.Model):
     """
@@ -540,15 +583,18 @@ class BlacklistToken(db.Model):
         else:
             return False
 
-#IOT Data model
+# IOT Data model
+
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dev_id = db.Column(db.String(32), index=True, nullable=False, unique=True)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
-    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
+    geom = db.Column(geoalchemy2.types.Geometry(
+        geometry_type="POINT", srid=4326, spatial_index=True))
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
+
 
 class DeviceMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -563,6 +609,7 @@ class DeviceMessage(db.Model):
             names = ['Unknown Message', 'Join Accept']
             return names[self.msg_type]
 
+
 class Outage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.DateTime, default=datetime.datetime.now)
@@ -572,16 +619,19 @@ class Outage(db.Model):
     voltage = db.Column(db.Float)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
-    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
+    geom = db.Column(geoalchemy2.types.Geometry(
+        geometry_type="POINT", srid=4326, spatial_index=True))
     dev_id = db.Column(db.Integer, db.ForeignKey('device.id'))
 
-#App Data Model
+# App Data Model
+
 
 class PinnedLocation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     address = db.Column(db.String(255))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 
 class AlternativePowerSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -590,8 +640,10 @@ class AlternativePowerSource(db.Model):
     payment = db.Column(db.String(50))
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
-    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
+    geom = db.Column(geoalchemy2.types.Geometry(
+        geometry_type="POINT", srid=4326, spatial_index=True))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 
 class ScheduleOutages(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -601,6 +653,7 @@ class ScheduleOutages(db.Model):
     end = db.Column(db.DateTime)
     lat = db.Column(db.Float)
     long = db.Column(db.Float)
-    geom = db.Column(geoalchemy2.types.Geometry(geometry_type="POINT", srid=4326, spatial_index=True))
+    geom = db.Column(geoalchemy2.types.Geometry(
+        geometry_type="POINT", srid=4326, spatial_index=True))
     status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
