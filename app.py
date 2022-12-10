@@ -81,10 +81,10 @@ def show_devices_on_map():
         lat2 = lat + lat_delta * 1.1
         long1 = long - long_delta * 1.1
         long2 = long + long_delta * 1.1
-        poly = geoalchemy2.elements.WKTElement(
-            f"POLYGON(({long1} {lat1}, {long2} {lat1}, {long2} {lat2}, {long1} {lat2}, {long1} {lat1}))", srid=4326)
+        poly = func.ST_SetSRID(func.ST_MakeEnvelope(
+            long1, lat1, long2, lat2), 4326)
         devs = db.session.query(Device).filter(
-            func.ST_Contains(poly, Device.geom)).all()
+            Device.geom.intersects(poly)).all()
         print(f"Devices in range: {len(devs)}")
         result = {"devices": [
             {"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]}
