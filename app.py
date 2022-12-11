@@ -87,9 +87,13 @@ def show_devices_on_map():
             long1, lat1, long2, lat2), 4326)
         devs = db.session.query(Device).filter(
             Device.geom.intersects(poly)).all()
+        dev_ids = [d.id for d in devs]
         print(f"Devices in range: {len(devs)}")
+        outages = db.session.query(Outage).filter(Outage.dev_id.in_(dev_ids), Outage.end_time == None).all()
+        print(f"Related outages: {len(outages)}")
+        dev_out = [o.dev_id for o in outages]
         result = {"devices": [
-            {"id": dev.id, "lat": dev.lat, "lng": dev.long} for dev in devs]}
+            {"id": dev.id, "lat": dev.lat, "lng": dev.long, "outage": (dev.id in dev_out) } for dev in devs]}
         return jsonify(result), 200
     else:
         return jsonify(message="No map region provided"), 403
