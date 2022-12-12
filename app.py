@@ -39,6 +39,7 @@ bcrypt = Bcrypt(app)
 # TTN message types
 JOIN_ACCEPT = 1
 
+# ROUTES
 
 @app.route("/")
 def show_homes():
@@ -242,6 +243,7 @@ def users(id):
 def signup():
     msg = request.json
     user = User.query.filter_by(email=msg.get('email')).first()
+    # issuperadmin = User.query.filter_by(superadmin=True).first()
     if not user:
         try:
             user = User(msg["email"], msg["password"])
@@ -266,6 +268,26 @@ def signup():
                 'message': 'Some error occurred. Please try again.'
             }
             return jsonify(responseObject), 401
+    # elif not issuperadmin:
+    #     try:
+    #         user = User(msg["email"], msg["password"])
+    #         user.superadmin = True
+    #         db.session.add(user)
+    #         db.session.commit()
+    #         auth_token = user.encode_auth_token(user.id)
+    #         responseObject = {
+    #             'status': 'success',
+    #             'message': 'Successfully registered.',
+    #             'auth_token': auth_token
+    #         }
+    #         return jsonify(responseObject), 201
+    #     except Exception as e:
+    #         print(e)
+    #         responseObject = {
+    #             'status': 'fail',
+    #             'message': 'Some error occurred. Please try again.'
+    #         }
+    #         return jsonify(responseObject), 401
     else:
         responseObject = {
             'status': 'fail',
@@ -279,6 +301,7 @@ def login():
     post_data = request.json
     try:
         # fetch the user data
+        ensure_super_admin()
         user = User.query.filter_by(email=post_data.get('email')).first()
         if user and bcrypt.check_password_hash(user.password, post_data.get('password')):
             auth_token = user.encode_auth_token(user.id)
@@ -663,3 +686,14 @@ class ScheduleOutages(db.Model):
         geometry_type="POINT", srid=4326, spatial_index=True))
     status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+def ensure_super_admin():
+    s = User.query.filter_by(email=os.getenv("SUPER_ADMIN")).first()
+    if s is None:
+        print("Creating super admin")
+        user = User(os.getenv("SUPER_ADMIN"), os.getenv("SUPER_PW"))
+        user.geom = f"SRID=4326;POINT(0 0)"
+        user.superadmin = True
+        db.session.add(user)
+        db.session.commit()
+
