@@ -41,4 +41,50 @@
   </div>
 </div>
 
+<script>
+  $(document).ready(function () {
+    $('#btnLogin').click(function () {
+        var email = $('#txtemail').val();
+        var pass = $('#txtpass').val();
+        var length = email.length;
+
+        if (email == "" || pass == "") {
+            alert('Please enter email and password');
+        }
+        else {
+            // $.post('https://outage-monitor.azurewebsites.net/api/v1/login', {
+            $.post('http://127.0.0.1:5000/api/v1/login', {
+                password: pass,
+                email: email
+            }, function (data, status) {
+                alert('Super Admin: ' + data);
+            });
+        }
+    });
+  });
+  // fetch('https://outage-monitor.azurewebsites.net/api/v1/login', {
+  //   method: 'POST',
+  //   headers: {
+  //     Accept: 'application/json',
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify({
+  //     email: email,
+  //     password: password
+  //   })
+  // })
+  // .then((response) => response.json())
+  // .then((json) => {
+  //   if(json.status == 'success') {
+  //     alert(json.message);
+  //   }
+  //   else {
+  //     alert(json.message);
+  //   }
+  // })
+  // .catch((error) => {
+  //   console.error(error);
+  // })
+</script>
+
 {% endblock %}

@@ -4,44 +4,67 @@
 {% block content %}
 <div class="jumbotron bg-transparent">
   <div class="row justify-content-center">
-      <div class="card mt-5 bg-transparent border-0">
-        <div class="card-body">
-          <div class="d-flex justify-content-center">
-              <img src="{{ url_for('static', filename='UTLogo.png') }}" style="width:270px; height:270px;">
-          </div>
+    <div class="card mt-5 bg-transparent border-0">
+      <div class="card-body">
+        <div class="d-flex justify-content-center">
+            <img src="{{ url_for('static', filename='UTLogo.png') }}" style="width:270px; height:270px;">
         </div>
       </div>
-      <div class="card w-50 mt-4 align-middle" style="background-color: rgba(255,255,255,.5);">
-        <div class="card-body">
-          <div class="row">
-            <div class="col">
-              <div class="form-group-sm">
-                <label>Email / Username</label>
-                <div class="input-group">
-                    <input id="txtemail" type="email" class="form-control" />
-                </div>
+    </div>
+    <div class="card w-50 mt-4 align-middle" style="background-color: rgba(255,255,255,.5);">
+      <div class="card-body">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Email / Username</label>
+              <div class="input-group">
+                  <input id="txtemail" type="email" class="form-control" />
               </div>
             </div>
           </div>
-          <div class="row">
-            <div class="col">
-                <div class="form-group">
-                    <label>Password</label>
-                    <div class="input-group">
-                        <input id="txtpass" type="password" class="form-control" />
-                    </div>
-                </div>
-            </div>
+        </div>
+        <div class="row">
+          <div class="col">
+              <div class="form-group">
+                  <label>Password</label>
+                  <div class="input-group">
+                      <input id="txtpass" type="password" class="form-control" />
+                  </div>
+              </div>
           </div>
-          <div class="d-flex mt-3 justify-content-center">
-            <button id="btnLogin" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Login</button>
-          </div>
-          <div class="d-flex mt-3 justify-content-center">
-            <a  href="/admin">New Super Admin</a>
-          </div>
+        </div>
+        <div class="d-flex mt-3 justify-content-center">
+          <button id="btnLogin" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Login</button>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<script>
+  $(document).ready(function () {
+    $('#btnLogin').click(function () {
+      var email = $('#txtemail').val();
+      var pass = $('#txtpass').val();
+      var length = email.length;
+
+      if (email == "" || pass == "") {
+        alert('Please enter email and password');
+      }
+      else {
+        $.ajax({
+          url:'/api/v1/login',
+          type:"POST",
+          data: JSON.stringify({ email: email, password: pass}),
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+          success: function() {
+            alert('success!');
+          }
+        })
+      }
+    });
+  });
+</script>
 
 {% endblock %}
