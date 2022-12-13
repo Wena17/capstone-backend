@@ -58,8 +58,9 @@
           data: JSON.stringify({ email: email, password: pass}),
           contentType:"application/json; charset=utf-8",
           dataType:"json",
-          success: function() {
-            alert('success!');
+          success: function(status) {
+            window.location.href = '/landing_page';
+            alert('success!'+ data + status);
           }
         })
       }

@@ -46,6 +46,11 @@ def show_homes():
     return render_template('home.html')
 
 
+@app.route("/landing_page")
+def show_landing():
+    return render_template('landing.html')
+
+
 @app.route("/health")
 def health_check():
     return "I'm fine"
@@ -57,8 +62,8 @@ def show_messages():
     return render_template('messages.html', messages=msgs)
 
 
-@app.route("/admin")
-def show_admin():
+@app.route("/add_admin")
+def show_addAdmin():
     return render_template('addAdmin.html')
 
 
@@ -300,7 +305,6 @@ def signup():
 def login():
     post_data = request.json
     try:
-        # fetch the user data
         ensure_super_admin()
         user = User.query.filter_by(email=post_data.get('email')).first()
         if user and bcrypt.check_password_hash(user.password, post_data.get('password')):
@@ -430,6 +434,24 @@ def viewPinnedLocation():
         return jsonify(responseObject), 500
 
 
+@app.route("/api/v1/pinned-location/<id>", methods=['DELETE'])
+def delete_pinned_location(id):
+    user_id = User.decode_auth_token(getAuthToken(request))
+    if not isinstance(user_id, int):
+        return '', 403
+    loc = PinnedLocation.query.filter_by(id=id, user_id=user_id).first()
+    if loc:
+        db.session.delete(loc)
+        db.session.commit()
+        return '', 204
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 404
+
+
 @app.route("/api/v1/add-alternative-power-source", methods=['POST'])
 def AlternativePowerSource():
     msg = request.json
@@ -456,22 +478,32 @@ def AlternativePowerSource():
         return jsonify(responseObject), 401
 
 
-@app.route("/api/v1/pinned-location/<id>", methods=['DELETE'])
-def delete_pinned_location(id):
-    user_id = User.decode_auth_token(getAuthToken(request))
-    if not isinstance(user_id, int):
-        return '', 403
-    loc = PinnedLocation.query.filter_by(id=id, user_id=user_id).first()
-    if loc:
-        db.session.delete(loc)
-        db.session.commit()
-        return '', 204
-    else:
+@app.route("/api/v1/posted-alternative-ps", methods=['GET'])
+def viewPinnedLocation():
+    try:
+        # fetch the user pinned location
+        auth = request.headers.get('Authorization')
+        token = auth.split(" ")[1]
+        user_id = User.decode_auth_token(token)
+        query = select(AlternativePowerSource.id, AlternativePowerSource.name,
+                       AlternativePowerSource.address, AlternativePowerSource.payment).filter_by(user_id=user_id)
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        # TODO return array of the response
+        posted = [{'id': id, 'name': name, 'address': address, 'payment': payment'}
+                for (id, name, address, payment) in exists]
+        responseObject = {
+            'status': 'success',
+            'Posted': posted
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
         responseObject = {
             'status': 'fail',
-            'message': 'Some error occurred. Please try again.'
+            'message': 'Try again'
         }
-        return jsonify(responseObject), 404
+        return jsonify(responseObject), 500
 
 
 @app.route("/api/v1/add-schedule-outage", methods=['POST'])
@@ -696,4 +728,3 @@ def ensure_super_admin():
         user.superadmin = True
         db.session.add(user)
         db.session.commit()
-
