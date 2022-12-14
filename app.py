@@ -479,7 +479,7 @@ def AlternativePowerSource():
 
 
 @app.route("/api/v1/posted-alternative-ps", methods=['GET'])
-def viewPinnedLocation():
+def viewPostedAlternativePS():
     try:
         # fetch the user pinned location
         auth = request.headers.get('Authorization')
@@ -490,7 +490,7 @@ def viewPinnedLocation():
         exists = db.session.execute(query).all()
         print("Exists: " + str(exists))
         # TODO return array of the response
-        posted = [{'id': id, 'name': name, 'address': address, 'payment': payment'}
+        posted = [{'id': id, 'name': name, 'address': address, 'payment': payment}
                 for (id, name, address, payment) in exists]
         responseObject = {
             'status': 'success',
