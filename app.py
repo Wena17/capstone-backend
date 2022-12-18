@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import select, func
@@ -49,6 +49,12 @@ def show_homes():
 @app.route("/landing_page")
 def show_landing():
     return render_template('landing.html')
+
+
+@app.route("/logout")
+def show_logout():
+    session.clear()
+    return render_template('home.html')
 
 
 @app.route("/health")
@@ -248,7 +254,6 @@ def users(id):
 def signup():
     msg = request.json
     user = User.query.filter_by(email=msg.get('email')).first()
-    # issuperadmin = User.query.filter_by(superadmin=True).first()
     if not user:
         try:
             user = User(msg["email"], msg["password"])
@@ -273,26 +278,6 @@ def signup():
                 'message': 'Some error occurred. Please try again.'
             }
             return jsonify(responseObject), 401
-    # elif not issuperadmin:
-    #     try:
-    #         user = User(msg["email"], msg["password"])
-    #         user.superadmin = True
-    #         db.session.add(user)
-    #         db.session.commit()
-    #         auth_token = user.encode_auth_token(user.id)
-    #         responseObject = {
-    #             'status': 'success',
-    #             'message': 'Successfully registered.',
-    #             'auth_token': auth_token
-    #         }
-    #         return jsonify(responseObject), 201
-    #     except Exception as e:
-    #         print(e)
-    #         responseObject = {
-    #             'status': 'fail',
-    #             'message': 'Some error occurred. Please try again.'
-    #         }
-    #         return jsonify(responseObject), 401
     else:
         responseObject = {
             'status': 'fail',
@@ -312,6 +297,9 @@ def login():
             user_id = user.id
             firstname = user.firstname
             if auth_token:
+                session['isAdmin'] = user.admin                
+                session['isSuperAdmin'] = user.superadmin
+                session['name'] = firstname
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully logged in.',

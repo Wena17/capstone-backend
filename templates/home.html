@@ -61,6 +61,9 @@
           success: function(status) {
             window.location.href = '/landing_page';
             alert('success!'+ data + status);
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert("User " + errorThrown);
           }
         })
       }
