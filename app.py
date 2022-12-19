@@ -10,6 +10,8 @@ import jwt
 import base64
 import struct
 import geoalchemy2
+import requests
+import json
 
 import logging
 logging.basicConfig()
@@ -138,6 +140,7 @@ def show_users():
 
 @app.route("/api/v1/register-device", methods=["POST"])
 def register_device():
+    # TODO: Give device an owner
     data = request.json
     dev = Device.query.filter_by(dev_id=data["dev_id"]).first()
     if dev == None:
@@ -167,6 +170,7 @@ def uplinkMessage():
         return ("Unknown device ID", 404)
     out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(
         Outage.start_time.desc()).first()
+    print(f"---> Outage found: {out}")
     if out == None and voltage < 1.0:  # New outage
         out = Outage()
         out.voltage = voltage
@@ -176,16 +180,16 @@ def uplinkMessage():
         out.geom = dev.geom
         db.session.add(out)
         db.session.commit()
-        # TODO notify_users(out)
+        notify_users(out, "Outage registered!")
     elif out != None and voltage > 100.0:  # Existing outage ended
         out.end_time = datetime.datetime.now()
         db.session.add(out)
         db.session.commit()
-        # TODO notify_users(out)
+        notify_users(out, "Outage ended")
     else:  # Either outage has not ended or no new outage began
-        pass
+        return ('', 204)
     resp = jsonify(success=True, outage_id=out.id)  # { "success": true }
-    return resp
+    return resp, 200
 
 
 @app.route("/api/v1/iot/normalizedUplink", methods=['POST'])
@@ -296,6 +300,11 @@ def login():
             auth_token = user.encode_auth_token(user.id)
             user_id = user.id
             firstname = user.firstname
+            t = post_data.get('pushToken')
+            if t is not None and t is not user.pushToken:
+                user.pushToken = t
+                db.session.add(user)
+                db.session.commit()
             if auth_token:
                 session['isAdmin'] = user.admin                
                 session['isSuperAdmin'] = user.superadmin
@@ -305,7 +314,8 @@ def login():
                     'message': 'Successfully logged in.',
                     'auth_token': auth_token,
                     'user_id': user_id,
-                    'fname': firstname
+                    'fname': firstname,
+                    'pushToken': t
                 }
                 return jsonify(responseObject), 200
         else:
@@ -536,6 +546,7 @@ class User(db.Model):
     firstname = db.Column(db.String(100))
     lastname = db.Column(db.String(100))
     phoneNo = db.Column(db.String(15))
+    pushToken = db.Column(db.String(100))
     email = db.Column(db.String(100), nullable=False)
     password = db.Column(db.String(255), nullable=False)
     lat = db.Column(db.Float)
@@ -716,3 +727,10 @@ def ensure_super_admin():
         user.superadmin = True
         db.session.add(user)
         db.session.commit()
+
+def notify_users(outage, msg):
+    users = User.query.filter(User.pushToken.isnot(None)).all() 
+    # TODO limit notification to owner and close by users
+    for u in users:
+        print(f"Sending notification to {u.email}")
+        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": msg, "body": "Buppdeedoo"} )
