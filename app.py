@@ -258,17 +258,26 @@ def users(id):
 def signup():
     msg = request.json
     user = User.query.filter_by(email=msg.get('email')).first()
+    isAdmin = msg["admin"]
+    isTechnician = msg['technician']
     if not user:
         try:
             user = User(msg["email"], msg["password"])
-            user.accountId = msg["consumerAccountID"]
             user.firstname = msg["firstName"]
             user.lastname = msg["lastName"]
-            user.phoneNo = msg["phoneNo"]
-            user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
+            user.phoneNo = msg["phoneNo"]          
+            auth_token = user.encode_auth_token(user.id)
+            if not isAdmin and not isTechnician:
+                user.accountId = msg["consumerAccountID"]
+                user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
+            elif isAdmin:
+                user.company = msg["company"]
+                user.tinNumber = msg["tinNumber"]
+                user.admin = isAdmin  
+            elif isTechnician:
+                user.technician = isTechnician
             db.session.add(user)
             db.session.commit()
-            auth_token = user.encode_auth_token(user.id)
             responseObject = {
                 'status': 'success',
                 'message': 'Successfully registered.',
@@ -545,6 +554,8 @@ class User(db.Model):
     accountId = db.Column(db.String(100))
     firstname = db.Column(db.String(100))
     lastname = db.Column(db.String(100))
+    company = db.Column(db.String(100))
+    tinNumber = db.Column(db.String(100))
     phoneNo = db.Column(db.String(15))
     pushToken = db.Column(db.String(100))
     email = db.Column(db.String(100), nullable=False)
