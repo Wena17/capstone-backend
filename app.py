@@ -127,7 +127,10 @@ def show_device(dev_id):
 
 @app.route('/registration/<string:dev_id>')
 def show_registration(dev_id):
-    return render_template('registration.html', dev_id=dev_id)
+    uid = session.get("user_id", None)
+    if uid is None:
+        return 'Not logged in', 403
+    return render_template('registration.html', dev_id=dev_id, user_id=uid)
 
 
 @app.route('/user')
@@ -144,9 +147,9 @@ def register_device():
     data = request.json
     dev = Device.query.filter_by(dev_id=data["dev_id"]).first()
     if dev == None:
-        (lat, long) = (data["lat"], data["long"])
+        (lat, long) = (data["lat"], data["long"])        
         dev = Device(dev_id=data["dev_id"], lat=lat,
-                     long=long, geom=f"SRID=4326;POINT({long} {lat})")
+                     long=long, geom=f"SRID=4326;POINT({long} {lat})", owner_id=data["owner_id"])
         db.session.add(dev)
         db.session.commit()
         return jsonify(success=True), 201
@@ -270,6 +273,7 @@ def signup():
             if not isAdmin and not isTechnician:
                 user.accountId = msg["consumerAccountID"]
                 user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
+                session['user_id'] = user.id
             elif isAdmin:
                 user.company = msg["company"]
                 user.tinNumber = msg["tinNumber"]
@@ -318,13 +322,13 @@ def login():
                 session['isAdmin'] = user.admin                
                 session['isSuperAdmin'] = user.superadmin
                 session['name'] = firstname
+                session['user_id'] = user_id
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully logged in.',
                     'auth_token': auth_token,
                     'user_id': user_id,
-                    'fname': firstname,
-                    'pushToken': t
+                    'fname': firstname
                 }
                 return jsonify(responseObject), 200
         else:
@@ -665,6 +669,7 @@ class Device(db.Model):
     geom = db.Column(geoalchemy2.types.Geometry(
         geometry_type="POINT", srid=4326, spatial_index=True))
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 
 class DeviceMessage(db.Model):
