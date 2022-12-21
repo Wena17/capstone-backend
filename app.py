@@ -269,11 +269,9 @@ def signup():
             user.firstname = msg["firstName"]
             user.lastname = msg["lastName"]
             user.phoneNo = msg["phoneNo"]          
-            auth_token = user.encode_auth_token(user.id)
             if not isAdmin and not isTechnician:
                 user.accountId = msg["consumerAccountID"]
                 user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
-                session['user_id'] = user.id
             elif isAdmin:
                 user.company = msg["company"]
                 user.tinNumber = msg["tinNumber"]
@@ -282,10 +280,13 @@ def signup():
                 user.technician = isTechnician
             db.session.add(user)
             db.session.commit()
+            auth_token = user.encode_auth_token(user.id)            
+            session['user_id'] = user.id
             responseObject = {
                 'status': 'success',
                 'message': 'Successfully registered.',
-                'auth_token': auth_token
+                'auth_token': auth_token,
+                'user_id': user.id
             }
             return jsonify(responseObject), 201
         except Exception as e:
