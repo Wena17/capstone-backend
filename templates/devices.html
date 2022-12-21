@@ -7,6 +7,7 @@
       <tr>
         <th scope="col">ID</th>
         <th scope="col">Device ID</th>
+        <th scope="col">Owner ID</th>
         <th scope="col">Latitude</th>
         <th scope="col">Longitude</th>
         <th scope="col">Timestamp</th>
@@ -17,6 +18,7 @@
       <tr>
         <td>{{dev.id}}</td>
         <td><a href=/devices/{{dev.dev_id}}>{{dev.dev_id}}</a></td>
+        <td><a href="/users/{{dev.owner_id}}">{{dev.owner_id}}</a></td>
         <td>{{ dev.lat }}</td>
         <td>{{ dev.long }}</td>
         <td>{{dev.ts}}</td>
