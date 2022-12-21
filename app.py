@@ -125,12 +125,11 @@ def show_device(dev_id):
     return render_template('device.html', dev=dev)
 
 
-@app.route('/registration/<string:dev_id>')
-def show_registration(dev_id):
-    uid = session.get("user_id", None)
-    if uid is None:
+@app.route('/registration/<string:dev_id>/user/<string:user_id>')
+def show_registration(dev_id, user_id):
+    if user_id is None:
         return 'Not logged in', 403
-    return render_template('registration.html', dev_id=dev_id, user_id=uid)
+    return render_template('registration.html', dev_id=dev_id, user_id=user_id)
 
 
 @app.route('/user')
