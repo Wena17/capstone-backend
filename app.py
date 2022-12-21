@@ -745,7 +745,8 @@ def ensure_super_admin():
         db.session.commit()
 
 def notify_users(outage, msg):
-    users = User.query.filter(User.pushToken.isnot(None)).all() 
+    users = User.query.filter(User.pushToken.isnot(None)).filter(func.ST_DWithin(User.geom, outage.geom, 10000)).all() 
+    print(f"Found {len(users)} users in range.")
     # TODO limit notification to owner and close by users
     for u in users:
         print(f"Sending notification to {u.email}")
