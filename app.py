@@ -467,19 +467,23 @@ def delete_pinned_location(id):
 def AlternativePowerSource():
     msg = request.json
     user_id = User.decode_auth_token(msg["authToken"])
+    exist = AlternativePowerSource.query.filter_by(user_id=user_id).first()
     try:
-        src_msg = AlternativePowerSource()
-        src_msg.name = msg["name"]
-        src_msg.address = msg["address"]
-        src_msg.payment = msg["payment"]
-        src_msg.user_id = user_id
-        db.session.add(src_msg)
-        db.session.commit()
-        responseObject = {
-            'status': 'success',
-            'message': 'Alternative power source added successfully added.'
-        }
-        return jsonify(responseObject), 201
+        if not exist:
+            src_msg = AlternativePowerSource()
+            src_msg.name = msg["name"]
+            src_msg.address = msg["address"]
+            src_msg.payment = msg["payment"]
+            src_msg.user_id = user_id
+            db.session.add(src_msg)
+            db.session.commit()
+            responseObject = {
+                'status': 'success',
+                'message': 'Alternative power source added successfully added.'
+            }
+            return jsonify(responseObject), 201
+        else:
+            return 'Posted alternative power source already exist ', 403
     except Exception as e:
         print(e)
         responseObject = {
@@ -515,6 +519,24 @@ def viewPostedAlternativePS():
             'message': 'Try again'
         }
         return jsonify(responseObject), 500
+
+
+@app.route("/api/v1/alternative-power-source/<id>", methods=['DELETE'])
+def delete_alternative_ps(id):
+    user_id = User.decode_auth_token(getAuthToken(request))
+    if not isinstance(user_id, int):
+        return '', 403
+    aps = AlternativePowerSource.query.filter_by(id=id, user_id=user_id).first()
+    if aps:
+        db.session.delete(aps)
+        db.session.commit()
+        return '', 204
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'Some error occurred. Please try again.'
+        }
+        return jsonify(responseObject), 404
 
 
 @app.route("/api/v1/add-schedule-outage", methods=['POST'])
