@@ -474,6 +474,7 @@ def AlternativePowerSource():
             src_msg.name = msg["name"]
             src_msg.address = msg["address"]
             src_msg.payment = msg["payment"]
+            src_msg.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
             src_msg.user_id = user_id
             db.session.add(src_msg)
             db.session.commit()
@@ -496,7 +497,6 @@ def AlternativePowerSource():
 @app.route("/api/v1/posted-alternative-ps", methods=['GET'])
 def viewPostedAlternativePS():
     try:
-        # fetch the user pinned location
         auth = request.headers.get('Authorization')
         token = auth.split(" ")[1]
         user_id = User.decode_auth_token(token)
@@ -510,6 +510,31 @@ def viewPostedAlternativePS():
         responseObject = {
             'status': 'success',
             'Posted': posted
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+
+@app.route("/api/v1/nearby-alternative-ps", methods=['GET'])
+def viewNearbyAlternativePS():
+    try:
+        auth = request.headers.get('Authorization')
+        token = auth.split(" ")[1]
+        user_id = User.decode_auth_token(token)
+        query = select(AlternativePowerSource.id, AlternativePowerSource.name,
+                       AlternativePowerSource.address, AlternativePowerSource.payment).filter(AlternativePowerSource.user_id != user_id, func.ST_DWithin(User.geom, AlternativePowerSource.geom, 10000))
+        exists = db.session.execute(query).all()
+        nearby = [{'id': id, 'name': name, 'address': address, 'payment': payment}
+                for (id, name, address, payment) in exists]
+        responseObject = {
+            'status': 'success',
+            'Posted': nearby
         }
         return jsonify(responseObject), 200
     except Exception as e:
