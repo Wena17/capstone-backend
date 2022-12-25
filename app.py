@@ -328,7 +328,8 @@ def login():
                     'message': 'Successfully logged in.',
                     'auth_token': auth_token,
                     'user_id': user_id,
-                    'fname': firstname
+                    'fname': firstname,
+                    'technician': user.technician
                 }
                 return jsonify(responseObject), 200
         else:
