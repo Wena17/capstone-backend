@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import select, func
+from sqlalchemy import select, func, desc
 import os
 import dotenv
 import datetime
@@ -83,6 +83,20 @@ def show_add_technician():
 @app.route("/order-device")
 def show_order_device():
     return render_template('orderDevice.html')
+    
+
+@app.route('/outages')
+def show_outages():
+    # TODO get the device owner
+    out = Outage.query.order_by(desc(Outage.start_time)).all()
+    return render_template('Outages.html', outages=out)
+
+
+@app.route('/scheduledOutages')
+def show_scheduleoutages():
+    # TODO display technician name
+    out = ScheduleOutages.query.order_by(desc(ScheduleOutages.start)).all()
+    return render_template('scheduledOutages.html', outages=out)
 
 
 @app.route("/api/v1/devices", methods=['GET'])

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="jumbotron mt-5">
+  <div class="row justify-content-end">
+    <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
+      {% if(out == null) %}
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">No Scheduled Outages</h1>
+      </div>
+      {% else %}
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">Scheduled Outages</h1>
+      </div>
+      <table class="table">
+        <thead>
+        <tr class="align-middle">
+          <th scope="col">ID</th>
+          <th scope="col">Purpose / Reason</th>
+          <th scope="col">Location</th>
+          <th scope="col">Start time</th>
+          <th scope="col">End time</th>
+          <th scope="col">Status</th>
+          <th class="text-center" scope="col">Who set</th>      
+          <th scope="col"> </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for out in outages %}
+        <tr class="align-middle">
+          <td>{{ out.id }}</td>
+          <td>{{ out.purpose }}</td>
+          <td>{{ out.Location }}</td>
+          <td>{{ out.start }}</td>
+          <td>{{ out.end }}</td>
+          <td>{{ out.status }}</td>
+          <td>{{ out.user_id }}</td>
+          <td><button id="btnApprove" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Approve</button></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

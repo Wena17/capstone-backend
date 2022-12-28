@@ -1,1 +1,44 @@
-<!-- TODO -->
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="jumbotron mt-5">
+  <div class="row justify-content-end">
+    <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">Outages</h1>
+      </div>
+      <table class="table">
+        <thead>
+        <tr class="align-middle">
+          <th scope="col">ID</th>
+          <th scope="col">Outage type</th>
+          <th scope="col">Outage reason</th>
+          <th scope="col">Start time</th>
+          <th scope="col">End time</th>
+          <th scope="col">Latitude</th>
+          <th scope="col">Longitude</th>
+          <th class="text-center" scope="col">Device ID</th>      
+          <th scope="col"> </th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for out in outages %}
+        <tr class="align-middle">
+          <td>{{ out.id }}</td>
+          <td>{% if(out.outage_type == 0) %} <label>Device detection</label> {% elif(out.outage_type == 1) %} "User report" {% endif %}</td>
+          <td>{{ out.outage_reason }}</td>
+          <td>{{ out.start_time }}</td>
+          <td>{{ out.end_time }}</td>
+          <td>{{ out.lat }}</td>
+          <td>{{ out.long }}</td>
+          <td>{{ out.dev_id }}</td>
+          <td><button id="btnEdit" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Edit</button></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
