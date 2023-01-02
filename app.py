@@ -679,7 +679,10 @@ def notif(id):
             notif.status = 1
             db.session.add(notif)
             db.session.commit()
-            return '', 204
+            responseObject = {
+                'status': 'success'
+            }
+            return jsonify(responseObject), 201
         except Exception as e:
             print(e)
             responseObject = {
