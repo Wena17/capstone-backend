@@ -671,6 +671,23 @@ def viewNotification():
         return jsonify(responseObject), 500
 
 
+@app.route("/api/v1/notifications/<int:id>", methods=['PUT'])
+def notif(id):
+    notif = Notification.query.filter_by(id=id).first()
+    if notif is not None:
+        try:
+            notif.status = 1
+            db.session.add(notif)
+            db.session.commit()
+            return '', 204
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 500
+
 
 
 # Data model
