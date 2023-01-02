@@ -174,7 +174,7 @@ def register_device():
 def uplinkMessage():
     msg = request.json
     print(f"---> Received uplink message: {msg}")
-    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
     (voltage, ) = struct.unpack("f", base64.b64decode(
         msg["uplink_message"]["frm_payload"]))
@@ -196,7 +196,7 @@ def uplinkMessage():
         out.geom = dev.geom
         db.session.add(out)
         db.session.commit()
-        notify_users(out, "Outage registered!")
+        notify_users(out, "Outage detected!")
     elif out != None and voltage > 100.0:  # Existing outage ended
         out.end_time = datetime.datetime.now()
         db.session.add(out)
@@ -221,7 +221,7 @@ def joinAccept():
     msg = request.json
     # TODO: Only accept join requests from previously registered devices
     print(f"---> Received join accept: {msg}")
-    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
     else:
         dev_msg = DeviceMessage()
@@ -812,4 +812,4 @@ def notify_users(outage, msg):
     # TODO limit notification to owner and close by users
     for u in users:
         print(f"Sending notification to {u.email}")
-        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": msg, "body": "Buppdeedoo"} )
+        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": "UtilityTracker", "body": msg} )
