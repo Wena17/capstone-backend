@@ -645,6 +645,33 @@ def restoration(dev_id):
         return jsonify(responseObject), 500
 
 
+@app.route("/api/v1/notification", methods=['GET'])
+def viewNotification():
+    try:
+        auth = request.headers.get('Authorization')
+        token = auth.split(" ")[1]
+        user_id = User.decode_auth_token(token)
+        query = select(Notification.id, Notification.message,
+                       Notification.title, Notification.ts).filter_by(user_id=user_id, status=0).order_by(Notification.ts)
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        notif = [{'id': id, 'message': message, 'title': title, 'ts': ts}
+                for (id, message, title, ts) in exists]
+        responseObject = {
+            'status': 'success',
+            'Notif': notif
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+
+
 
 # Data model
 
