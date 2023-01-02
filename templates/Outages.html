@@ -33,7 +33,7 @@
           <td>{{ out.lat }}</td>
           <td>{{ out.long }}</td>
           <td>{{ out.dev_id }}</td>
-          <td><button id="btnEdit" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Edit</button></td>
+          <td><button id="btnAdd" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Add Details</button></td>
         </tr>
         {% endfor %}
         </tbody>
@@ -41,4 +41,12 @@
     </div>
   </div>
 </div>
+
+<script>
+  $(document).ready(function () {
+    $('#btnAdd').click(function () {
+      window.location.href = '/add-outage-details';
+    });
+  });
+</script>
 {% endblock %}

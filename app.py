@@ -85,12 +85,21 @@ def show_order_device():
     return render_template('orderDevice.html')
     
 
+@app.route("/orders")
+def show_orders():
+    return render_template('orders.html')
+    
+    
 @app.route('/outages')
 def show_outages():
     # TODO get the device owner
     out = Outage.query.order_by(desc(Outage.start_time)).all()
     return render_template('Outages.html', outages=out)
 
+
+@app.route("/add-outage-details")
+def show_addOutageDetails():
+    return render_template('addOutageDetails.html')
 
 @app.route('/scheduledOutages')
 def show_scheduleoutages():
@@ -148,7 +157,7 @@ def show_registration(dev_id, user_id):
 
 @app.route('/user')
 def show_users():
-    msgs = User.query.all()
+    msgs = User.query.order_by(User.id).all()
     return render_template('user.html', users=msgs)
 
 # IoT API
