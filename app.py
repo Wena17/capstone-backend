@@ -796,6 +796,20 @@ class ScheduleOutages(db.Model):
     status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255))
+    title = db.Column(db.String(255))    
+    status = db.Column(db.Integer, default=0)
+    out_id = db.Column(db.Integer, db.ForeignKey('outage.id'), nullable=False)
+
+
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 def ensure_super_admin():
     s = User.query.filter_by(email=os.getenv("SUPER_ADMIN")).first()
     if s is None:
