@@ -66,7 +66,7 @@ def health_check():
 
 @app.route('/messages')
 def show_messages():
-    msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
+    msgs = DeviceMessage.query.order_by(desc(DeviceMessage.ts)).all()
     return render_template('messages.html', messages=msgs)
 
 
