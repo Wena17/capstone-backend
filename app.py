@@ -858,7 +858,16 @@ def ensure_super_admin():
 
 def notify_users(outage, msg):
     users = User.query.filter(User.pushToken.isnot(None)).filter(func.ST_DWithin(User.geom, outage.geom, 10000)).all() 
+    title = "UtilityTracker"
     print(f"Found {len(users)} users in range.")
     for u in users:
         print(f"Sending notification to {u.email}")
-        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": "UtilityTracker", "body": msg} )
+        notif = Notification()
+        notif.message = msg
+        notif.title = title
+        notif.out_id = outage.id
+        notif.user_id = u.id
+        db.session.add(notif)
+        db.session.commit()
+        print("Notif save!")
+        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": title, "body": msg} )
