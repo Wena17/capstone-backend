@@ -752,6 +752,7 @@ class Outage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.DateTime, default=datetime.datetime.now)
     end_time = db.Column(db.DateTime)
+    est_end_time = db.Column(db.DateTime)
     outage_type = db.Column(db.Integer, default=0)
     outage_reason = db.Column(db.String(255))
     voltage = db.Column(db.Float)
