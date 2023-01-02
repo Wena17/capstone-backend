@@ -622,6 +622,30 @@ def ScheduleOutage():
         return jsonify(responseObject), 401
 
 
+@app.route("/api/v1/restoration-details/<int:dev_id>", methods=['GET'])
+def restoration(dev_id):
+    try:
+        query = select(Outage.outage_reason, Outage.est_end_time).filter_by(dev_id=dev_id)
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        # TODO return array of the response
+        details = [{'reason': outage_reason, 'est_end_time': est_end_time}
+                for (outage_reason, est_end_time) in exists]
+        responseObject = {
+            'status': 'success',
+            'Details': details
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+
+
 # Data model
 
 class User(db.Model):
