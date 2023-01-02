@@ -802,7 +802,9 @@ class Notification(db.Model):
     message = db.Column(db.String(255))
     title = db.Column(db.String(255))    
     status = db.Column(db.Integer, default=0)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
     out_id = db.Column(db.Integer, db.ForeignKey('outage.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 class Feedback(db.Model):
@@ -823,7 +825,6 @@ def ensure_super_admin():
 def notify_users(outage, msg):
     users = User.query.filter(User.pushToken.isnot(None)).filter(func.ST_DWithin(User.geom, outage.geom, 10000)).all() 
     print(f"Found {len(users)} users in range.")
-    # TODO limit notification to owner and close by users
     for u in users:
         print(f"Sending notification to {u.email}")
         requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": "UtilityTracker", "body": msg} )
