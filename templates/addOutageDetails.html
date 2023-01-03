@@ -14,7 +14,7 @@
                     <div class="col">
                         <label for="txtReason">Outage reason</label>
                         <div class="input-group">
-                            <textarea class="form-control" id="txtReason" name="copies" rows="3" cols="40" ></textarea>
+                            <textarea class="form-control" id="txtReason" name="copies" rows="3" cols="40" value="{{ outage.reason }}"></textarea>
                         </div>
                     </div>
                 </div>
@@ -33,7 +33,7 @@
                     </div>
                 </div>   
                 <div class="d-grid gap-5 d-md-flex justify-content-center mt-5">
-                    <button id="btnAdd" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Cancel</button>
+                    <button id="btnCancel" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Cancel</button>
                     <button id="btnAdd" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Save</button>
                 </div>
             </div>
@@ -41,8 +41,40 @@
     </div>
 </div>
 
-
-
+<script>
+    $(document).ready(function () {
+      $('#btnAdd').click(function () {
+        var reason = $('#txtReason').val();
+        var endDate = $('#txtDate').val();
+        var endTime = $('#txtTime').val();
+        var id = {{ outage.id }};
+  
+        if (reason == "" || endDate == "" || endTime == "") {
+          alert('Please fill out all information');
+        }
+        else {
+          $.ajax({
+            url:'/api/v1/restoration/'+ id ,
+            type:"PUT",
+            contentType:"application/json; charset=utf-8",
+            data: JSON.stringify({ 
+              reason: reason,
+              endDate: endDate,
+              endTime: endTime
+            }),
+            dataType:"json",
+            success: function(status) {
+              window.location.href = '/landing_page';
+              alert(status);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+              alert("User " + errorThrown);
+            }
+          })
+        }
+      });
+    });
+  </script>
 
 
 {% endblock %}

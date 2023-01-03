@@ -101,6 +101,7 @@ def show_outages():
 def show_addOutageDetails():
     return render_template('addOutageDetails.html')
 
+
 @app.route('/scheduledOutages')
 def show_scheduleoutages():
     # TODO display technician name
@@ -110,7 +111,7 @@ def show_scheduleoutages():
 
 @app.route('/client')
 def show_clients():
-    clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
+    client = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
     return render_template('client.html', client=clients)
 
 
@@ -165,6 +166,33 @@ def show_registration(dev_id, user_id):
 def show_users():
     msgs = User.query.order_by(User.id).all()
     return render_template('user.html', users=msgs)
+
+@app.route("/api/v1/restoration/<int:id>", methods=['GET', 'PUT'])
+def restore(id):
+    res = Outage.query.filter_by(id=id).first()
+    if res is not None:
+        if request.method == 'GET':
+            return render_template('/addOutageDetails.html', outage=res)
+        else:
+            msg = request.json
+            end = msg["endDate"] + " " + msg["endTime"]
+            end_time = datetime.datetime.strptime(end, '%Y-%m-%d %H:%M')
+            try:            
+                res.outage_reason = msg["reason"]
+                res.est_end_time = end_time
+                db.session.add(res)
+                db.session.commit()
+                responseObject = {
+                    'status': 'success'
+                }
+                return jsonify(responseObject), 201
+            except Exception as e:
+                print(e)
+                responseObject = {
+                    'status': 'fail',
+                    'message': 'Some error occurred. Please try again.'
+                }
+                return jsonify(responseObject), 500
 
 # IoT API
 
@@ -256,6 +284,7 @@ def locationSolved():
     return resp
 
 
+
 @app.route("/api/v1/users/<int:id>", methods=['PUT', 'GET'])
 def users(id):
     user_id = User.decode_auth_token(getAuthToken(request))
@@ -283,6 +312,8 @@ def users(id):
             return jsonify(responseObject), 500
     else:
         return jsonify({'user_id': user.id, 'password': user.password, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+
+
 
 
 @app.route("/api/v1/signup", methods=['POST'])
