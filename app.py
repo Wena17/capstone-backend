@@ -108,6 +108,12 @@ def show_scheduleoutages():
     return render_template('scheduledOutages.html', outages=out)
 
 
+@app.route('/client')
+def show_clients():
+    clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
+    return render_template('client.html', client=clients)
+
+
 @app.route("/api/v1/devices", methods=['GET'])
 def show_devices_on_map():
     args = request.args
