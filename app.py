@@ -99,10 +99,10 @@ def show_outages():
 @app.route('/outage/<int:id>')
 def show_outage_details(id):
     outage = Outage.query.get(id)
-    if outage is None:
-        return '', 404
-    else:
+    if outage:
         return render_template('outage_detail.html', outage=outage)
+    else:
+        return '', 404
 
 
 

@@ -14,7 +14,7 @@
                     <div class="col">
                         <label for="txtReason">Outage reason</label>
                         <div class="input-group">
-                            <textarea class="form-control" id="txtReason" name="copies" rows="3" cols="40" >{{outage.outage_reason}}</textarea>
+                            <textarea class="form-control" id="txtReason" name="copies" rows="3" cols="40" >{{outage.outage_reason|default("")}}</textarea>
                         </div>
                     </div>
                 </div>
@@ -22,13 +22,21 @@
                     <div class="col-md-6">
                         <label for="txtDate">Date</label>
                         <div class="input-group">
+                          {% if outage.est_end_time %}
                             <input class="form-control" id="txtDate" type="date" value="{{ outage.est_end_time.strftime('%Y-%m-%d') }}"/>
+                          {% else %}
+                            <input class="form-control" id="txtDate" type="date"/>
+                          {% endif %}
                         </div>
                     </div>
                     <div class="col-md-6">
                         <label for="txtTime">Time</label>
                         <div class="input-group">
+                          {% if outage.est_end_time %}
                             <input class="form-control" id="txtTime" type="time" value="{{ outage.est_end_time.strftime('%H:%M') }}" />
+                          {% else %}
+                          <input class="form-control" id="txtTime" type="time" />
+                          {% endif %}
                         </div>
                     </div>
                 </div>   
