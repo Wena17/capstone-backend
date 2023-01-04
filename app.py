@@ -223,8 +223,7 @@ def uplinkMessage():
     print(f"---> Received uplink message: {msg}")
     if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
-    (voltage, ) = struct.unpack("f", base64.b64decode(
-        msg["uplink_message"]["frm_payload"]))
+    voltage = float(base64.b64decode(msg["uplink_message"]["frm_payload"]))
     voltage = round(voltage, 2)
     print(f"Voltage: {voltage}")
     dev = Device.query.filter_by(
@@ -234,7 +233,7 @@ def uplinkMessage():
     out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(
         Outage.start_time.desc()).first()
     print(f"---> Outage found: {out}")
-    if out == None and voltage < 1.0:  # New outage
+    if out == None and voltage < 10.0:  # New outage
         out = Outage()
         out.voltage = voltage
         out.dev_id = dev.id
@@ -244,7 +243,7 @@ def uplinkMessage():
         db.session.add(out)
         db.session.commit()
         notify_users(out, "Outage detected!")
-    elif out != None and voltage > 1.0:  # Existing outage ended
+    elif out != None and voltage > 100.0:  # Existing outage ended
         out.end_time = datetime.datetime.now()
         db.session.add(out)
         db.session.commit()
