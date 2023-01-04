@@ -1,37 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="jumbotron mt-5">
-  <div class="row justify-content-end">
-    <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
-      <div class="d-flex justify-content-center">
-        <h1 class="diplay-4">Devices</h1>
-      </div>
-      <table class="table">
-        <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Device ID</th>
-          <th scope="col">Owner ID</th>
-          <th scope="col">Latitude</th>
-          <th scope="col">Longitude</th>
-          <th scope="col">Timestamp</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for dev in devices %}
-        <tr>
-          <td>{{dev.id}}</td>
-          <td><a href=/devices/{{dev.dev_id}}>{{dev.dev_id}}</a></td>
-          <td><a href="/users/{{dev.owner_id}}">{{dev.owner_id}}</a></td>
-          <td>{{ dev.lat }}</td>
-          <td>{{ dev.long }}</td>
-          <td>{{dev.ts}}</td>
-        </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+    <h1>Devices</h1>
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">ID</th>
+        <th scope="col">Device ID</th>
+        <th scope="col">Owner ID</th>
+        <th scope="col">Latitude</th>
+        <th scope="col">Longitude</th>
+        <th scope="col">Timestamp</th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for dev in devices %}
+      <tr>
+        <td>{{dev.id}}</td>
+        <td><a href=/devices/{{dev.dev_id}}>{{dev.dev_id}}</a></td>
+        <td><a href="/users/{{dev.owner_id}}">{{dev.owner_id}}</a></td>
+        <td>{{ dev.lat }}</td>
+        <td>{{ dev.long }}</td>
+        <td>{{dev.ts}}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
 {% endblock %}

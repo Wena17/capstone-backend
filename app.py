@@ -240,11 +240,7 @@ def uplinkMessage():
         db.session.add(out)
         db.session.commit()
         notify_users(out, "Outage detected!")
-<<<<<<< HEAD
     elif out != None and voltage > 1.0:  # Existing outage ended
-=======
-    elif out != None and voltage > 100.0:  # Existing outage ended
->>>>>>> 3c9845e9f167d2059efcf33a77520c35d8f62c41
         out.end_time = datetime.datetime.now()
         db.session.add(out)
         db.session.commit()

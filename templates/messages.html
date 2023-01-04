@@ -1,33 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="jumbotron mt-5">
-  <div class="row justify-content-end">
-    <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
-      <div class="d-flex justify-content-center">
-        <h1 class="diplay-4">Messages</h1>
-      </div>
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Device ID</th>
-            <th scope="col">Message Type</th>
-            <th scope="col">Timestamp</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for message in messages %}
+    <h1>Messages</h1>
+    <table class="table">
+      <thead>
         <tr>
-          <td>{{message.id}}</td>
-          <td>{{message.dev_id}}</td>
-          <td>{{ message.msg_type_name() }}</td>
-          <td>{{message.ts}}</td>
+          <th scope="col">ID</th>
+          <th scope="col">Device ID</th>
+          <th scope="col">Message Type</th>
+          <th scope="col">Timestamp</th>
         </tr>
-        {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
+      </thead>
+      <tbody>
+      {% for message in messages %}
+      <tr>
+        <td>{{message.id}}</td>
+        <td>{{message.dev_id}}</td>
+        <td>{{ message.msg_type_name() }}</td>
+        <td>{{message.ts}}</td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
 {% endblock %}
