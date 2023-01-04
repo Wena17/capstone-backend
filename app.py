@@ -94,12 +94,16 @@ def show_orders():
 def show_outages():
     # TODO get the device owner
     out = Outage.query.order_by(desc(Outage.start_time)).all()
-    return render_template('Outages.html', outages=out)
+    return render_template('outages.html', outages=out)
 
+@app.route('/outage/<int:id>')
+def show_outage_details(id):
+    outage = Outage.query.get(id)
+    if outage is None:
+        return '', 404
+    else:
+        return render_template('outage_detail.html', outage=outage)
 
-@app.route("/add-outage-details")
-def show_addOutageDetails():
-    return render_template('addOutageDetails.html')
 
 
 @app.route('/scheduledOutages')
@@ -111,7 +115,7 @@ def show_scheduleoutages():
 
 @app.route('/client')
 def show_clients():
-    client = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
+    clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
     return render_template('client.html', client=clients)
 
 

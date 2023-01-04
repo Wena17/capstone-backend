@@ -5,24 +5,20 @@
   <div class="row justify-content-end">
     <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
       <div class="d-flex justify-content-center">
-        <h1 class="diplay-4">Messages</h1>
+        <h1 class="diplay-4">Clients</h1>
       </div>
       <table class="table">
         <thead>
-          <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Device ID</th>
-            <th scope="col">Message Type</th>
-            <th scope="col">Timestamp</th>
-          </tr>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col"></th>
+        </tr>
         </thead>
         <tbody>
-        {% for message in messages %}
+        {% for cli in client %}
         <tr>
-          <td>{{message.id}}</td>
-          <td>{{message.dev_id}}</td>
-          <td>{{ message.msg_type_name() }}</td>
-          <td>{{message.ts}}</td>
+          <td>{{cli.company}}</td>          
+          <td><button id="btnView" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">View</button></td>
         </tr>
         {% endfor %}
         </tbody>

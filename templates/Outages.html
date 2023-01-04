@@ -15,6 +15,7 @@
           <th scope="col">Outage type</th>
           <th scope="col">Outage reason</th>
           <th scope="col">Start time</th>
+          <th scope="col">Estimated End time</th>
           <th scope="col">End time</th>
           <th scope="col">Latitude</th>
           <th scope="col">Longitude</th>
@@ -29,11 +30,12 @@
           <td>{% if(out.outage_type == 0) %} <label>Device detection</label> {% elif(out.outage_type == 1) %} "User report" {% endif %}</td>
           <td>{{ out.outage_reason }}</td>
           <td>{{ out.start_time }}</td>
+          <td>{{ out.est_end_time }}</td>
           <td>{{ out.end_time }}</td>
           <td>{{ out.lat }}</td>
           <td>{{ out.long }}</td>
           <td>{{ out.dev_id }}</td>
-          <td><button id="btnEdit" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Edit</button></td>
+          <td><a href="/outage/{{ out.id }}" id="btnAdd" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Add Details</a></td>
         </tr>
         {% endfor %}
         </tbody>
