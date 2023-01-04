@@ -66,7 +66,7 @@ def health_check():
 
 @app.route('/messages')
 def show_messages():
-    msgs = DeviceMessage.query.order_by(DeviceMessage.ts).all()
+    msgs = DeviceMessage.query.order_by(desc(DeviceMessage.ts)).all()
     return render_template('messages.html', messages=msgs)
 
 
@@ -85,6 +85,11 @@ def show_order_device():
     return render_template('orderDevice.html')
     
 
+@app.route("/orders")
+def show_orders():
+    return render_template('orders.html')
+    
+    
 @app.route('/outages')
 def show_outages():
     # TODO get the device owner
@@ -92,11 +97,22 @@ def show_outages():
     return render_template('Outages.html', outages=out)
 
 
+@app.route("/add-outage-details")
+def show_addOutageDetails():
+    return render_template('addOutageDetails.html')
+
+
 @app.route('/scheduledOutages')
 def show_scheduleoutages():
     # TODO display technician name
     out = ScheduleOutages.query.order_by(desc(ScheduleOutages.start)).all()
     return render_template('scheduledOutages.html', outages=out)
+
+
+@app.route('/client')
+def show_clients():
+    client = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
+    return render_template('client.html', client=clients)
 
 
 @app.route("/api/v1/devices", methods=['GET'])
@@ -148,8 +164,35 @@ def show_registration(dev_id, user_id):
 
 @app.route('/user')
 def show_users():
-    msgs = User.query.all()
+    msgs = User.query.order_by(User.id).all()
     return render_template('user.html', users=msgs)
+
+@app.route("/api/v1/restoration/<int:id>", methods=['GET', 'PUT'])
+def restore(id):
+    res = Outage.query.filter_by(id=id).first()
+    if res is not None:
+        if request.method == 'GET':
+            return render_template('/addOutageDetails.html', outage=res)
+        else:
+            msg = request.json
+            end = msg["endDate"] + " " + msg["endTime"]
+            end_time = datetime.datetime.strptime(end, '%Y-%m-%d %H:%M')
+            try:            
+                res.outage_reason = msg["reason"]
+                res.est_end_time = end_time
+                db.session.add(res)
+                db.session.commit()
+                responseObject = {
+                    'status': 'success'
+                }
+                return jsonify(responseObject), 201
+            except Exception as e:
+                print(e)
+                responseObject = {
+                    'status': 'fail',
+                    'message': 'Some error occurred. Please try again.'
+                }
+                return jsonify(responseObject), 500
 
 # IoT API
 
@@ -174,7 +217,7 @@ def register_device():
 def uplinkMessage():
     msg = request.json
     print(f"---> Received uplink message: {msg}")
-    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
     (voltage, ) = struct.unpack("f", base64.b64decode(
         msg["uplink_message"]["frm_payload"]))
@@ -196,8 +239,8 @@ def uplinkMessage():
         out.geom = dev.geom
         db.session.add(out)
         db.session.commit()
-        notify_users(out, "Outage registered!")
-    elif out != None and voltage > 100.0:  # Existing outage ended
+        notify_users(out, "Outage detected!")
+    elif out != None and voltage > 1.0:  # Existing outage ended
         out.end_time = datetime.datetime.now()
         db.session.add(out)
         db.session.commit()
@@ -221,7 +264,7 @@ def joinAccept():
     msg = request.json
     # TODO: Only accept join requests from previously registered devices
     print(f"---> Received join accept: {msg}")
-    if msg["end_device_ids"]["application_ids"]["application_id"] != "capstone-util-moni":
+    if msg["end_device_ids"]["application_ids"]["application_id"] != "wena-util-moni":
         return ("Wrong application ID", 403)
     else:
         dev_msg = DeviceMessage()
@@ -239,6 +282,7 @@ def locationSolved():
     print(f"---> Received location solved: {msg}")
     resp = jsonify(success=True)  # { "success": true }
     return resp
+
 
 
 @app.route("/api/v1/users/<int:id>", methods=['PUT', 'GET'])
@@ -268,6 +312,8 @@ def users(id):
             return jsonify(responseObject), 500
     else:
         return jsonify({'user_id': user.id, 'password': user.password, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+
+
 
 
 @app.route("/api/v1/signup", methods=['POST'])
@@ -613,6 +659,77 @@ def ScheduleOutage():
         return jsonify(responseObject), 401
 
 
+@app.route("/api/v1/restoration-details/<int:dev_id>", methods=['GET'])
+def restoration(dev_id):
+    try:
+        query = select(Outage.outage_reason, Outage.est_end_time).filter_by(dev_id=dev_id)
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        # TODO return array of the response
+        details = [{'reason': outage_reason, 'est_end_time': est_end_time}
+                for (outage_reason, est_end_time) in exists]
+        responseObject = {
+            'status': 'success',
+            'Details': details
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+
+@app.route("/api/v1/notification", methods=['GET'])
+def viewNotification():
+    try:
+        auth = request.headers.get('Authorization')
+        token = auth.split(" ")[1]
+        user_id = User.decode_auth_token(token)
+        query = select(Notification.id, Notification.message,
+                       Notification.title, Notification.ts).filter_by(user_id=user_id, status=0).order_by(Notification.ts)
+        exists = db.session.execute(query).all()
+        print("Exists: " + str(exists))
+        notif = [{'id': id, 'message': message, 'title': title, 'ts': ts}
+                for (id, message, title, ts) in exists]
+        responseObject = {
+            'status': 'success',
+            'Notif': notif
+        }
+        return jsonify(responseObject), 200
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail',
+            'message': 'Try again'
+        }
+        return jsonify(responseObject), 500
+
+
+@app.route("/api/v1/notifications/<int:id>", methods=['PUT'])
+def notif(id):
+    notif = Notification.query.filter_by(id=id).first()
+    if notif is not None:
+        try:
+            notif.status = 1
+            db.session.add(notif)
+            db.session.commit()
+            responseObject = {
+                'status': 'success'
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 500
+
+
+
 # Data model
 
 class User(db.Model):
@@ -651,7 +768,7 @@ class User(db.Model):
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=600),
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=150000),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }
@@ -752,6 +869,7 @@ class Outage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     start_time = db.Column(db.DateTime, default=datetime.datetime.now)
     end_time = db.Column(db.DateTime)
+    est_end_time = db.Column(db.DateTime)
     outage_type = db.Column(db.Integer, default=0)
     outage_reason = db.Column(db.String(255))
     voltage = db.Column(db.Float)
@@ -796,6 +914,22 @@ class ScheduleOutages(db.Model):
     status = db.Column(db.Integer, default=0)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255))
+    title = db.Column(db.String(255))    
+    status = db.Column(db.Integer, default=0)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
+    out_id = db.Column(db.Integer, db.ForeignKey('outage.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
+class Feedback(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
 def ensure_super_admin():
     s = User.query.filter_by(email=os.getenv("SUPER_ADMIN")).first()
     if s is None:
@@ -808,8 +942,16 @@ def ensure_super_admin():
 
 def notify_users(outage, msg):
     users = User.query.filter(User.pushToken.isnot(None)).filter(func.ST_DWithin(User.geom, outage.geom, 10000)).all() 
+    title = "UtilityTracker"
     print(f"Found {len(users)} users in range.")
-    # TODO limit notification to owner and close by users
     for u in users:
         print(f"Sending notification to {u.email}")
-        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": msg, "body": "Buppdeedoo"} )
+        notif = Notification()
+        notif.message = msg
+        notif.title = title
+        notif.out_id = outage.id
+        notif.user_id = u.id
+        db.session.add(notif)
+        db.session.commit()
+        print("Notif save!")
+        requests.post("https://exp.host/--/api/v2/push/send",  json={"to": u.pushToken, "title": title, "body": msg} )
