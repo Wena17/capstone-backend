@@ -1,0 +1,80 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="jumbotron  jumbotron-fluid bg-transparent">
+    <div class="row justify-content-center mt-5">
+        <div class="card w-50 mt-5" style="background-color: rgba(255,255,255,.5);">
+            <div class="d-flex justify-content-center">
+                <h1 class="diplay-4">Add Outage Details</h1>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <label for="txtReason">Outage reason</label>
+                        <div class="input-group">
+                            <textarea class="form-control" id="txtReason" name="copies" rows="3" cols="40" value="{{ outage.reason }}"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="txtDate">Date</label>
+                        <div class="input-group">
+                            <input class="form-control" id="txtDate" type="date" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="txtTime">Time</label>
+                        <div class="input-group">
+                            <input class="form-control" id="txtTime" type="time" />
+                        </div>
+                    </div>
+                </div>   
+                <div class="d-grid gap-5 d-md-flex justify-content-center mt-5">
+                    <button id="btnCancel" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Cancel</button>
+                    <button id="btnAdd" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+      $('#btnAdd').click(function () {
+        var reason = $('#txtReason').val();
+        var endDate = $('#txtDate').val();
+        var endTime = $('#txtTime').val();
+        var id = {{ outage.id }};
+  
+        if (reason == "" || endDate == "" || endTime == "") {
+          alert('Please fill out all information');
+        }
+        else {
+          $.ajax({
+            url:'/api/v1/restoration/'+ id ,
+            type:"PUT",
+            contentType:"application/json; charset=utf-8",
+            data: JSON.stringify({ 
+              reason: reason,
+              endDate: endDate,
+              endTime: endTime
+            }),
+            dataType:"json",
+            success: function(status) {
+              window.location.href = '/landing_page';
+              alert(status);
+            },
+            error: function(XMLHttpRequest, textStatus, errorThrown) {
+              alert("User " + errorThrown);
+            }
+          })
+        }
+      });
+    });
+  </script>
+
+
+{% endblock %}
