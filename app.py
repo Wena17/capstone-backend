@@ -335,6 +335,8 @@ def signup():
             user.phoneNo = msg["phoneNo"]          
             if not isAdmin and not isTechnician:
                 user.accountId = msg["consumerAccountID"]
+                user.lat = msg['lat']
+                user.long = msg['lng']
                 user.geom = f"SRID=4326;POINT({msg['lng']} {msg['lat']})"
             elif isAdmin:
                 user.company = msg["company"]
@@ -771,6 +773,39 @@ def outageManualReporting():
         return jsonify(responseObject), 404
 
 
+
+@app.route("/api/v1/feedback", methods=['POST'])
+def feedback():
+    msg = request.json
+    auth = request.headers.get('Authorization')
+    token = auth.split(" ")[1]
+    user_id = User.decode_auth_token(token)
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        try:
+            feed = Feedback()
+            feed.purpose = msg["message"]
+            feed.user_id = user_id
+            db.session.add(feed)
+            db.session.commit()
+            responseObject = {
+                'status': 'success',
+                'message': 'Thank you for the feedback.'
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 401
+    else:
+        responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+        return jsonify(responseObject), 404
 
 # Data model
 
