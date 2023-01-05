@@ -638,9 +638,9 @@ def ScheduleOutage():
     user_id = User.decode_auth_token(msg["authToken"])
     start = msg["startDate"] + " " + msg["startTime"]
     print("Start: " + start)
-    start_date_time = datetime.datetime.strptime(start, '%d/%m/%y %H:%M:%S')
+    start_date_time = datetime.datetime.strptime(start, '%Y-%m-%d %H:%M')
     end = msg["endDate"] + " " + msg["endTime"]
-    end_date_time = datetime.datetime.strptime(end, '%d/%m/%y %H:%M:%S')
+    end_date_time = datetime.datetime.strptime(end, '%Y-%m-%d %H:%M')
     try:
         sched_msg = ScheduleOutages()
         sched_msg.purpose = msg["purpose"]
