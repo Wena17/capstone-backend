@@ -1,1 +1,33 @@
-<!-- TODO -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron mt-5">
+  <div class="row justify-content-end">
+    <div class="card w-75 mt-5 align-middle" style="background-color: rgba(255, 255, 255, 0.7);">
+      <div class="d-flex justify-content-center">
+        <h1 class="diplay-4">Feedback</h1>
+      </div>
+      <table class="table">
+        <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Feedback message</th>
+          <th scope="col">Sent</th>
+          <th scope="col">User</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for feed in feedback %}
+        <tr>
+          <td>{{ feed.id }}</td>
+          <td>{{ feed.message }}</td>
+          <td>{{ feed.ts }}</td>
+          <td><a href="/users/{{feed.user_id}}">{{feed.user_id}}</a></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

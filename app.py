@@ -203,7 +203,7 @@ def restore(id):
 @app.route('/feedback')
 def show_feedback():
     data = Feedback.query.order_by(Feedback.ts).all()
-    return render_template('feedback.html', feed=data)
+    return render_template('feedback.html', feedback=data)
 
 # IoT API
 
@@ -790,7 +790,7 @@ def feedback():
     if user:
         try:
             feed = Feedback()
-            feed.purpose = msg["message"]
+            feed.message = msg["message"]
             feed.user_id = user_id
             db.session.add(feed)
             db.session.commit()
