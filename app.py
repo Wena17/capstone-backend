@@ -159,7 +159,7 @@ def show_device(dev_id):
     return render_template('device.html', dev=dev)
 
 
-@app.route('/registration/<string:dev_id>/user/<string:user_id>')
+@app.route('/registration/<int:dev_id>/user/<int:user_id>')
 def show_registration(dev_id, user_id):
     if user_id is None:
         return 'Not logged in', 403
