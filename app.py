@@ -736,7 +736,6 @@ def notif(id):
 
 @app.route("/api/v1/outage-manual-reporting", methods=['POST'])
 def outageManualReporting():
-    msg = request.json
     auth = request.headers.get('Authorization')
     token = auth.split(" ")[1]
     user_id = User.decode_auth_token(token)
