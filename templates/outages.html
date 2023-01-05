@@ -27,7 +27,7 @@
         {% for out in outages %}
         <tr class="align-middle">
           <td>{{ out.id }}</td>
-          <td>{% if(out.outage_type == 0) %} <label>Device detection</label> {% elif(out.outage_type == 1) %} "User report" {% endif %}</td>
+          <td>{% if(out.outage_type == 0) %} <label>Device detection</label> {% elif(out.outage_type == 1) %} <label>Manual report</label> {% endif %}</td>
           <td>{{ out.outage_reason }}</td>
           <td>{{ out.start_time }}</td>
           <td>{{ out.est_end_time }}</td>
@@ -35,7 +35,11 @@
           <td>{{ out.lat }}</td>
           <td>{{ out.long }}</td>
           <td>{{ out.dev_id }}</td>
-          <td><a href="/outage/{{ out.id }}" id="btnAdd" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Add Details</a></td>
+          {% if out.end_time %}
+            <td></td>
+          {% else %}
+            <td><a href="/outage/{{ out.id }}" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Add Details</a></td>
+          {% endif %}
         </tr>
         {% endfor %}
         </tbody>
@@ -43,4 +47,5 @@
     </div>
   </div>
 </div>
+
 {% endblock %}

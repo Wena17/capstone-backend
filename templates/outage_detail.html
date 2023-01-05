@@ -41,7 +41,7 @@
                     </div>
                 </div>   
                 <div class="d-grid gap-5 d-md-flex justify-content-center mt-5">
-                    <button id="btnCancel" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Cancel</button>
+                    <a href="/outages" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Cancel</a>
                     <button id="btnAdd" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Save</button>
                 </div>
             </div>
@@ -72,8 +72,8 @@
             }),
             dataType:"json",
             success: function(status) {
-              window.location.href = '/landing_page';
-              alert(status);
+              window.location.href = '/outages';
+              alert("Successfully updated outage details");
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
               alert("User " + errorThrown);

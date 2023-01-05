@@ -186,6 +186,7 @@ def restore(id):
                 res.est_end_time = end_time
                 db.session.add(res)
                 db.session.commit()
+                notify_users(res, "Outage estimated restoration time")
                 responseObject = {
                     'status': 'success'
                 }
@@ -240,6 +241,7 @@ def uplinkMessage():
         out.lat = dev.lat
         out.long = dev.long
         out.geom = dev.geom
+        out.user_id = dev.owner_id
         db.session.add(out)
         db.session.commit()
         notify_users(out, "Outage detected!")
@@ -732,6 +734,44 @@ def notif(id):
             return jsonify(responseObject), 500
 
 
+@app.route("/api/v1/outage-manual-reporting", methods=['POST'])
+def outageManualReporting():
+    msg = request.json
+    auth = request.headers.get('Authorization')
+    token = auth.split(" ")[1]
+    user_id = User.decode_auth_token(token)
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        try:
+            out = Outage()
+            out.lat = user.lat
+            out.long = user.long
+            out.geom = user.geom
+            out.outage_type = 1
+            out.user_id = user_id
+            db.session.add(out)
+            db.session.commit()
+            notify_users(out, "Outage reported by user")
+            responseObject = {
+                'status': 'success',
+                'message': 'Reporting outage succesfully sent'
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Some error occurred. Please try again.'
+            }
+            return jsonify(responseObject), 401
+    else:
+        responseObject = {
+                'status': 'fail',
+                'message': 'User not found.'
+            }
+        return jsonify(responseObject), 404
+
+
 
 # Data model
 
@@ -880,6 +920,8 @@ class Outage(db.Model):
     long = db.Column(db.Float)
     geom = db.Column(geoalchemy2.types.Geometry(
         geometry_type="POINT", srid=4326, spatial_index=True))
+    address = db.Column(db.String(255))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     dev_id = db.Column(db.Integer, db.ForeignKey('device.id'))
 
 # App Data Model
