@@ -199,6 +199,12 @@ def restore(id):
                 }
                 return jsonify(responseObject), 500
 
+
+@app.route('/feedback')
+def show_feedback():
+    data = Feedback.query.order_by(Feedback.ts).all()
+    return render_template('feedback.html', feed=data)
+
 # IoT API
 
 
@@ -1006,7 +1012,8 @@ class Notification(db.Model):
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    message = db.Column(db.String(255))
+    message = db.Column(db.String(255))    
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 def ensure_super_admin():

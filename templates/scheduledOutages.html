@@ -29,9 +29,13 @@
           <td>{{ out.Location }}</td>
           <td>{{ out.start }}</td>
           <td>{{ out.end }}</td>
-          <td>{{ out.status }}</td>
+          <td>{% if(out.status == 0) %} <label>To be approved</label> {% elif(out.outage_type == 1) %} <label>Approved</label> {% endif %}</td>
           <td>{{ out.user_id }}</td>
-          <td><button id="btnApprove" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Approve</button></td>
+          {% if(out.status == 0) %}
+            <td><button id="btnApprove" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">Approve</button></td>
+          {% else %}
+            <td></td>
+          {% endif %}
         </tr>
         {% endfor %}
         </tbody>
