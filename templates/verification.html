@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="jumbotron bg-transparent">
+  <div class="row justify-content-center">
+    <div class="card mt-5 bg-transparent border-0">
+      <div class="card-body">
+        <div class="d-flex justify-content-center">
+            <img src="{{ url_for('static', filename='UTLogo.png') }}" style="width:270px; height:270px;">
+        </div>
+      </div>
+    </div>
+    <div class="card w-50 mt-4 align-middle" style="background-color: rgba(255,255,255,.5);">
+      <div class="card-body">
+        <div class="row">
+          <div class="col">
+            <div class="form-group-sm">
+              <label>Verification code</label>
+              <div class="input-group">
+                  <input id="txtVerificationCode" type="text" class="form-control" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex mt-3 justify-content-center">
+          <button id="btnVerify" class="btn" style="background: linear-gradient(to right, #5bc0de, #9dd9eb);">verify</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(document).ready(function () {
+    $('#btnVerify').click(function () {
+      var vcode = $('#txtVerificationCode').val();
+
+      if (vcode == " " ) {
+        alert('Please enter the code to proceed');
+      }
+      else {
+        window.location.href = '/api/v1/verified-admin/' + vcode;
+      }
+    });
+  });
+</script>
+
+{% endblock %}

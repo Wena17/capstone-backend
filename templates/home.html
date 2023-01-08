@@ -2,6 +2,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+{% if error %}
+<script>
+    alert("Incorrect verification code");
+</script>
+
+{% endif %}
 <div class="jumbotron bg-transparent">
   <div class="row justify-content-center">
     <div class="card mt-5 bg-transparent border-0">
@@ -59,8 +65,8 @@
           contentType:"application/json; charset=utf-8",
           dataType:"json",
           success: function(status) {
-            window.location.href = '/landing_page';
-            alert('success!'+ data + status);
+              window.location.href = '/verify';
+              alert('success!'+ data + status);
           },
           error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert("User " + errorThrown);

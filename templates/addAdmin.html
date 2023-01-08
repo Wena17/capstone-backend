@@ -41,7 +41,7 @@
             <div class="form-group-sm">
               <label>Phone number</label>
               <div class="input-group">
-                <input type="text" class="form-control" id="phoneNo">
+                <input type="number" class="form-control" id="phoneNo">
               </div>
             </div>
           </div>
@@ -98,6 +98,7 @@
       var tinNumber = $('#tinNumber').val();
       var email = company + '@' + company + '.com';
       var pass = company;
+      
 
       if (company == "" || ownerFName == "" || ownerLName == "" || phoneNo == "" || tinNumber == "") {
         alert('Please fill out all information');

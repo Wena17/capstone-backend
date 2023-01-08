@@ -12,6 +12,8 @@ import struct
 import geoalchemy2
 import requests
 import json
+from geopy.geocoders import GoogleV3
+from flask import flash
 
 import logging
 logging.basicConfig()
@@ -28,6 +30,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://{dbuser}:{dbpass}
     dbname=os.environ['DBNAME']
 )
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+app.config['GOOGLE_KEY'] = os.environ['GOOGLE_KEY']
+app.config['VCODE'] = os.environ['VCODE']
 
 
 def include_object(object, name, type_, *args, **kwargs):
@@ -96,9 +100,34 @@ def show_outages():
     out = Outage.query.order_by(desc(Outage.start_time)).all()
     return render_template('outages.html', outages=out)
 
+# NEW
+@app.route('/verify')
+def show_verified():
+    if(session['isSuperAdmin']):
+        return render_template('verification.html')
+    else:
+        return render_template('landing.html')
+
+
+@app.route('/api/v1/verified-admin/<string:id>')
+def verified(id):
+    if(app.config.get('VCODE') == id):
+        session['verified'] = True
+        return render_template('landing.html')
+    else:
+        session.clear()
+        error = 'Incorrect verification code'
+        return render_template('home.html', error= error)
+
+
 @app.route('/outage/<int:id>')
 def show_outage_details(id):
     outage = Outage.query.get(id)
+    geolocator = GoogleV3(api_key=app.config.get('GOOGLE_KEY'))
+    lat = float(outage.lat)
+    long = float(outage.long)
+    # locations = geolocator.reverse(f"{float(dev.lat), float(dev.long)}")
+    locations = geolocator.reverse(f'{lat}, {long}')
     if outage:
         return render_template('outage_detail.html', outage=outage)
     else:
@@ -240,13 +269,29 @@ def uplinkMessage():
     out = Outage.query.filter_by(dev_id=dev.id, end_time=None).order_by(
         Outage.start_time.desc()).first()
     print(f"---> Outage found: {out}")
+    
+    # geocoding
+    geolocator = GoogleV3(api_key=app.config.get('GOOGLE_KEY'))
+    lat = float(dev.lat)
+    long = float(dev.long)
+    locations = geolocator.reverse(f'{lat}, {long}')
+    if locations:
+        print(locations)  # select first location
+
+    # geolocator = GoogleV3(api_key=app.config.get('GOOGLE_KEY'))
+    # lat = float(dev.lat)
+    # long = float(dev.long)
+    # locations = geolocator.reverse(f'{lat}, {long}')
+
     if out == None and voltage < 10.0:  # New outage
         out = Outage()
+        
         out.voltage = voltage
         out.dev_id = dev.id
         out.lat = dev.lat
         out.long = dev.long
         out.geom = dev.geom
+        out.address = str(locations)
         out.user_id = dev.owner_id
         db.session.add(out)
         db.session.commit()
