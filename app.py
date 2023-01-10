@@ -352,7 +352,6 @@ def users(id):
     if request.method == 'PUT':
         msg = request.json
         try:
-            user.accountId = msg["consumerAccountID"]
             user.firstname = msg["firstName"]
             user.lastname = msg["lastName"]
             user.phoneNo = msg["phoneNo"]
@@ -367,7 +366,7 @@ def users(id):
             }
             return jsonify(responseObject), 500
     else:
-        return jsonify({'user_id': user.id, 'password': user.password, 'consumerAccountID': user.accountId, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
+        return jsonify({'user_id': user.id, 'password': user.password, 'firstName': user.firstname, 'lastName': user.lastname, "phoneNo": user.phoneNo}), 200
 
 
 
@@ -1009,6 +1008,19 @@ class Outage(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     dev_id = db.Column(db.Integer, db.ForeignKey('device.id'))
 
+
+class Order(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Integer)
+    price = db.Column(db.Integer)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
+
+
+class Price(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    price = db.Column(db.Integer)
+    ts = db.Column(db.DateTime, default=datetime.datetime.now)
+
 # App Data Model
 
 
@@ -1060,6 +1072,8 @@ class Feedback(db.Model):
     message = db.Column(db.String(255))    
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+
 
 def ensure_super_admin():
     s = User.query.filter_by(email=os.getenv("SUPER_ADMIN")).first()
