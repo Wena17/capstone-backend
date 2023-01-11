@@ -925,12 +925,12 @@ def history():
     print("-----> Device ID: " + str(dev_id))
     if dev_id:
         try:
-            query = select(Outage.start_time, Outage.end_time, Outage.address, Outage.outage_reason, Outage.outage_type).filter_by(dev_id=dev_id.id)
+            query = select(Outage.id, Outage.start_time, Outage.end_time, Outage.address, Outage.outage_reason, Outage.outage_type).filter_by(dev_id=dev_id.id)
             exists = db.session.execute(query).all()
             print("Exists: " + str(exists))
             # TODO return array of the response
-            history = [{'start': start_time, 'end': end_time, 'address': address, 'reason': outage_reason, 'type': outage_type}
-                    for (start_time, end_time, address, outage_reason, outage_type) in exists]
+            history = [{'id': id, 'start': start_time, 'end': end_time, 'address': address, 'reason': outage_reason, 'type': outage_type}
+                    for (id, start_time, end_time, address, outage_reason, outage_type) in exists]
             responseObject = {
                 'status': 'success',
                 'History': history
