@@ -100,7 +100,7 @@ def show_outages():
     out = Outage.query.order_by(desc(Outage.start_time)).all()
     return render_template('outages.html', outages=out)
 
-# NEW
+
 @app.route('/verify')
 def show_verified():
     if(session['isSuperAdmin']):
@@ -134,7 +134,6 @@ def show_outage_details(id):
         return '', 404
 
 
-
 @app.route('/scheduledOutages')
 def show_scheduleoutages():
     # TODO display technician name
@@ -146,6 +145,37 @@ def show_scheduleoutages():
 def show_clients():
     clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
     return render_template('client.html', client=clients)
+
+
+@app.route('/prices')
+def show_prices():
+    prc = Price.query.order_by(desc(Price.ts)).all()
+    return render_template('prices.html', prices=prc)
+
+
+@app.route("/price")
+def show_price():
+    return render_template('newPrice.html')
+
+
+@app.route("/api/v1/new-price", methods=['POST'])
+def price():
+    msg = request.json
+    try:
+        price = Price()
+        price.price = msg["price"]
+        db.session.add(price)
+        db.session.commit()
+        responseObject = {
+            'status': 'success'
+        }
+        return jsonify(responseObject), 201
+    except Exception as e:
+        print(e)
+        responseObject = {
+            'status': 'fail'
+        }
+        return jsonify(responseObject), 401
 
 
 @app.route("/api/v1/devices", methods=['GET'])
@@ -965,7 +995,6 @@ class BlacklistToken(db.Model):
             return False
 
 # IOT Data model
-
 
 class Device(db.Model):
     id = db.Column(db.Integer, primary_key=True)
