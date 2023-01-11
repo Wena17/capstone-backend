@@ -2,46 +2,91 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-7 justify-content-center mt-5">
-      <div class="card shadow-lg mb-4 bg-transparent mt-5">
-          <div class="card-header">
-              <div class="form-group d-flex justify-content-center">
-                  <h3 class="font-weight-light my-2">Order Device</h3>
+<div class="jumbotron  jumbotron-fluid bg-transparent">
+    <div class="row justify-content-center mt-5">
+      <div class="card w-50 mt-5" style="background-color: rgba(255,255,255,.5);">
+        <div class="d-flex justify-content-center">
+          <h1 class="diplay-4">Order Device</h1>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col">
+              <div class="form-group-sm">
+                <label for="txtUnit">Number of device</label>
+                <div class="form-group">
+                    <input class="form-control" id="txtUnit" name="copies" type="number" min="1" onchange="updateTotalAmount();"/>
+                </div>
               </div>
+            </div>
           </div>
-          <div class="card-body">
-              <form id="requestTypeForm" method="post" action="">
-                  <div class="row">
-                    <div class="col-md-6">
-                        <label for="txtUnit">Number of device</label>
-                        <div class="form-group">
-                            <input class="form-control" id="txtUnit" name="copies" type="number" min="1"/>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <label for="txtPrice">Price</label>
-                        <div class="form-group">
-                            <input class="form-control" id="txtPrice" type="text" readonly />
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="txtAmount">Total Amount</label>
-                        <div class="form-group">
-                            <input class="form-control" id="txtAmount" type="text" readonly />
-                        </div>
-                    </div>
-                  </div><br />
-                  <div class="row">
-                      <div class="col-md-6 ml-auto">
-                          <div class="form-group">
-                              <input class="btn btn-block" id="btnSubmit" type="submit" value="Send Order" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);"/>
-                          </div>
-                      </div>
-                  </div>
-              </form>
+          <div class="row">
+            <div class="col">
+              <div class="form-group-sm">
+                <label for="txtPrice">Price</label>
+                <div class="form-group">
+                    <input class="form-control" id="txtPrice" type="number" value="{{ price.price }}" readonly />
+                </div>
+              </div>
+            </div>
           </div>
+          <div class="row">
+            <div class="col">
+              <div class="form-group-sm">
+                <label for="txtAmount">Total Amount</label>
+                <div class="form-group">
+                    <input class="form-control" id="txtAmount" type="number" readonly />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex mt-3 justify-content-center">
+            <button id="btnSubmit" class="btn btn-lg" style="background: linear-gradient(to right, #B4F8C8, #FBE7C6);">Send order</button>
+          </div>
+        </div>
       </div>
-  </div>
+    </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+    $('#btnSubmit').click(function () {
+      var unit = $('#txtUnit').val();
+      var price = $('#txtPrice').val(); 
+      var amount = $('#txtAmount').val();
+      var user_id = {{ session['user_id'] }};   
+      
+      if (unit == "" || price == "" ) {
+        alert('Please fill out all information');
+      }
+      else {
+        $.ajax({
+          url:'/api/v1/device_order',
+          type:"POST",
+          data: JSON.stringify({ 
+            quantity: unit,
+            price: price,
+            total: amount,
+            user_id: user_id
+          }),
+          contentType:"application/json; charset=utf-8",
+          dataType:"json",
+          success: function(status) {
+            window.location.href = '/orders';
+            alert(+ unit +' Order added to your orders \nTotal amount: ' + amount);
+          },
+          error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert("User " + errorThrown);
+          }
+        })
+      }
+    });
+  });
+
+  
+  function updateTotalAmount() {
+        var copies = parseInt(document.getElementById("txtUnit").value);
+        var price = parseInt(document.getElementById("txtPrice").value);            
+        document.getElementById('txtAmount').value = copies * price;
+    }
+</script>
 {% endblock %}

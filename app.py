@@ -13,7 +13,6 @@ import geoalchemy2
 import requests
 import json
 from geopy.geocoders import GoogleV3
-from flask import flash
 
 import logging
 logging.basicConfig()
@@ -78,16 +77,6 @@ def show_addAdmin():
 def show_add_technician():
     return render_template('addTechnician.html')
 
-
-@app.route("/order-device")
-def show_order_device():
-    return render_template('orderDevice.html')
-    
-
-@app.route("/orders")
-def show_orders():
-    return render_template('orders.html')
-
     
 @app.route('/verify')
 def show_verified():
@@ -107,6 +96,18 @@ def show_dev_price():
 def show_messages():
     msgs = DeviceMessage.query.order_by(desc(DeviceMessage.ts)).all()
     return render_template('messages.html', messages=msgs)
+
+
+@app.route("/order-device")
+def show_order_device():
+    price = Price.query.order_by(desc(Price.ts)).first()
+    return render_template('orderDevice.html', price=price)
+    
+
+@app.route("/orders")
+def show_orders():
+    order = Order.query.order_by(desc(Order.ts)).all()
+    return render_template('orders.html', orders=order)
 
 
 @app.route('/outages')
@@ -262,6 +263,38 @@ def restore(id):
                     'message': 'Some error occurred. Please try again.'
                 }
                 return jsonify(responseObject), 500
+
+
+@app.route("/api/v1/device_order", methods=['POST'])
+def device_order():
+    msg = request.json
+    user_id = msg["user_id"]
+    user = User.query.filter_by(id=user_id).first()
+    if user:
+        try:
+            order = Order()
+            order.quantity = msg["quantity"]
+            order.price = msg["price"]
+            order.total = msg["total"]
+            order.user_id = user_id
+            db.session.add(order)
+            db.session.commit()
+            responseObject = {
+                'status': 'success'
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail'
+            }
+            return jsonify(responseObject), 401
+    else:
+            responseObject = {
+                'status': 'fail',
+                'message': 'User does not exist.'
+            }
+            return jsonify(responseObject), 404
 
 # IoT API
 
@@ -881,6 +914,42 @@ def feedback():
             }
         return jsonify(responseObject), 404
 
+
+@app.route("/api/v1/outage-history", methods=['GET'])
+def history():    
+    auth = request.headers.get('Authorization')
+    token = auth.split(" ")[1]
+    user_id = User.decode_auth_token(token)
+    dev_query = select(Device.id).filter_by(owner_id=user_id)
+    dev_id = db.session.execute(dev_query).first()
+    print("-----> Device ID: " + str(dev_id))
+    if dev_id:
+        try:
+            query = select(Outage.start_time, Outage.end_time, Outage.address, Outage.outage_reason, Outage.outage_type).filter_by(dev_id=dev_id.id)
+            exists = db.session.execute(query).all()
+            print("Exists: " + str(exists))
+            # TODO return array of the response
+            history = [{'start': start_time, 'end': end_time, 'address': address, 'reason': outage_reason, 'type': outage_type}
+                    for (start_time, end_time, address, outage_reason, outage_type) in exists]
+            responseObject = {
+                'status': 'success',
+                'History': history
+            }
+            return jsonify(responseObject), 200
+        except Exception as e:
+            print(e)
+            responseObject = {
+                'status': 'fail',
+                'message': 'Try again'
+            }
+            return jsonify(responseObject), 500
+    else:
+        responseObject = {
+                'status': 'fail',
+                'message': 'Device not found'
+            }
+        return jsonify(responseObject), 404
+
 # Data model
 
 class User(db.Model):
@@ -1036,7 +1105,10 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     quantity = db.Column(db.Integer)
     price = db.Column(db.Integer)
+    total = db.Column(db.Integer)
+    status = db.Column(db.Integer, default=0)
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
 
 class Price(db.Model):
@@ -1083,7 +1155,7 @@ class ScheduleOutages(db.Model):
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.String(255))
-    title = db.Column(db.String(255))    
+    title = db.Column(db.String(255))
     status = db.Column(db.Integer, default=0)
     ts = db.Column(db.DateTime, default=datetime.datetime.now)
     out_id = db.Column(db.Integer, db.ForeignKey('outage.id'), nullable=False)
