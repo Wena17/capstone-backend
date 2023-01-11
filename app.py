@@ -45,7 +45,13 @@ bcrypt = Bcrypt(app)
 # TTN message types
 JOIN_ACCEPT = 1
 
-# ROUTES
+
+@app.route("/health")
+def health_check():
+    return "I'm fine"
+
+
+# SITE ROUTES
 
 @app.route("/")
 def show_homes():
@@ -61,17 +67,6 @@ def show_landing():
 def show_logout():
     session.clear()
     return render_template('home.html')
-
-
-@app.route("/health")
-def health_check():
-    return "I'm fine"
-
-
-@app.route('/messages')
-def show_messages():
-    msgs = DeviceMessage.query.order_by(desc(DeviceMessage.ts)).all()
-    return render_template('messages.html', messages=msgs)
 
 
 @app.route("/add_admin")
@@ -92,8 +87,28 @@ def show_order_device():
 @app.route("/orders")
 def show_orders():
     return render_template('orders.html')
+
     
+@app.route('/verify')
+def show_verified():
+    if(session['isSuperAdmin']):
+        return render_template('verification.html')
+    else:
+        return render_template('landing.html')
+
+        
+@app.route("/price")
+def show_dev_price():
+    return render_template('newPrice.html')
     
+# SITE RETURN DATA
+    
+@app.route('/messages')
+def show_messages():
+    msgs = DeviceMessage.query.order_by(desc(DeviceMessage.ts)).all()
+    return render_template('messages.html', messages=msgs)
+
+
 @app.route('/outages')
 def show_outages():
     # TODO get the device owner
@@ -101,12 +116,54 @@ def show_outages():
     return render_template('outages.html', outages=out)
 
 
-@app.route('/verify')
-def show_verified():
-    if(session['isSuperAdmin']):
-        return render_template('verification.html')
-    else:
-        return render_template('landing.html')
+@app.route('/scheduledOutages')
+def show_scheduleoutages():
+    # TODO display technician name
+    out = ScheduleOutages.query.order_by(desc(ScheduleOutages.start)).all()
+    return render_template('scheduledOutages.html', schedoutages=out)
+
+
+@app.route('/client')
+def show_clients():
+    clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
+    return render_template('client.html', client=clients)
+
+
+@app.route('/devices')
+def show_devices():
+    data = Device.query.order_by(Device.ts).all()
+    return render_template('devices.html', devices=data)
+
+
+@app.route('/devices/<string:dev_id>')
+def show_device(dev_id):
+    dev = Device.query.filter_by(dev_id=dev_id).first()
+    return render_template('device.html', dev=dev)
+
+
+@app.route('/registration/<int:dev_id>/user/<int:user_id>')
+def show_registration(dev_id, user_id):
+    if user_id is None:
+        return 'Not logged in', 403
+    return render_template('registration.html', dev_id=dev_id, user_id=user_id)
+
+
+@app.route('/user')
+def show_users():
+    msgs = User.query.order_by(User.id).all()
+    return render_template('user.html', users=msgs)
+
+
+@app.route('/prices')
+def show_prices():
+    prc = Price.query.order_by(desc(Price.ts)).all()
+    return render_template('prices.html', prices=prc)
+    
+
+@app.route('/feedback')
+def show_feedback():
+    data = Feedback.query.order_by(Feedback.ts).all()
+    return render_template('feedback.html', feedback=data)
 
 
 @app.route('/api/v1/verified-admin/<string:id>')
@@ -118,45 +175,17 @@ def verified(id):
         session.clear()
         error = 'Incorrect verification code'
         return render_template('home.html', error= error)
-
+        
 
 @app.route('/outage/<int:id>')
 def show_outage_details(id):
     outage = Outage.query.get(id)
-    geolocator = GoogleV3(api_key=app.config.get('GOOGLE_KEY'))
-    lat = float(outage.lat)
-    long = float(outage.long)
-    # locations = geolocator.reverse(f"{float(dev.lat), float(dev.long)}")
-    locations = geolocator.reverse(f'{lat}, {long}')
     if outage:
         return render_template('outage_detail.html', outage=outage)
     else:
         return '', 404
 
-
-@app.route('/scheduledOutages')
-def show_scheduleoutages():
-    # TODO display technician name
-    out = ScheduleOutages.query.order_by(desc(ScheduleOutages.start)).all()
-    return render_template('scheduledOutages.html', outages=out)
-
-
-@app.route('/client')
-def show_clients():
-    clients = User.query.filter_by(admin=True).order_by(desc(User.id)).all()
-    return render_template('client.html', client=clients)
-
-
-@app.route('/prices')
-def show_prices():
-    prc = Price.query.order_by(desc(Price.ts)).all()
-    return render_template('prices.html', prices=prc)
-
-
-@app.route("/price")
-def show_price():
-    return render_template('newPrice.html')
-
+# SITE POST OR GET DATA
 
 @app.route("/api/v1/new-price", methods=['POST'])
 def price():
@@ -206,30 +235,6 @@ def show_devices_on_map():
         return jsonify(message="No map region provided"), 403
 
 
-@app.route('/devices')
-def show_devices():
-    data = Device.query.order_by(Device.ts).all()
-    return render_template('devices.html', devices=data)
-
-
-@app.route('/devices/<string:dev_id>')
-def show_device(dev_id):
-    dev = Device.query.filter_by(dev_id=dev_id).first()
-    return render_template('device.html', dev=dev)
-
-
-@app.route('/registration/<int:dev_id>/user/<int:user_id>')
-def show_registration(dev_id, user_id):
-    if user_id is None:
-        return 'Not logged in', 403
-    return render_template('registration.html', dev_id=dev_id, user_id=user_id)
-
-
-@app.route('/user')
-def show_users():
-    msgs = User.query.order_by(User.id).all()
-    return render_template('user.html', users=msgs)
-
 @app.route("/api/v1/restoration/<int:id>", methods=['GET', 'PUT'])
 def restore(id):
     res = Outage.query.filter_by(id=id).first()
@@ -257,12 +262,6 @@ def restore(id):
                     'message': 'Some error occurred. Please try again.'
                 }
                 return jsonify(responseObject), 500
-
-
-@app.route('/feedback')
-def show_feedback():
-    data = Feedback.query.order_by(Feedback.ts).all()
-    return render_template('feedback.html', feedback=data)
 
 # IoT API
 
@@ -306,12 +305,7 @@ def uplinkMessage():
     long = float(dev.long)
     locations = geolocator.reverse(f'{lat}, {long}')
     if locations:
-        print(locations)  # select first location
-
-    # geolocator = GoogleV3(api_key=app.config.get('GOOGLE_KEY'))
-    # lat = float(dev.lat)
-    # long = float(dev.long)
-    # locations = geolocator.reverse(f'{lat}, {long}')
+        print(locations)  
 
     if out == None and voltage < 10.0:  # New outage
         out = Outage()
