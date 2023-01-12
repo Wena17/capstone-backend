@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from sqlalchemy import select, func, desc
+from sqlalchemy import select, func, desc, or_
 import os
 import dotenv
 import datetime
@@ -925,7 +925,7 @@ def history():
     print("-----> Device ID: " + str(dev_id))
     if dev_id:
         try:
-            query = select(Outage.id, Outage.start_time, Outage.end_time, Outage.address, Outage.outage_reason, Outage.outage_type).filter_by(dev_id=dev_id.id)
+            query = select(Outage.id, Outage.start_time, Outage.end_time, Outage.address, Outage.outage_reason, Outage.outage_type).where(or_(Outage.dev_id==dev_id.id, Outage.user_id==user_id))
             exists = db.session.execute(query).all()
             print("Exists: " + str(exists))
             # TODO return array of the response
